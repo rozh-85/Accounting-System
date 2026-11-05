@@ -62,7 +62,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Item to="/settings" icon={<Settings size={16} />} label={t('nav.settings')} />
       </Group>
       <div className="mt-auto pt-6 sm:hidden">
-        <LanguageSwitcher />
+        <LanguageSwitcher side="top" align="start" />
       </div>
     </nav>
   );

@@ -7,7 +7,7 @@
 
 /* ---------------------------------------------------------------------------
    Design tokens — Vio Accounting
-   Restrained enterprise palette: navy ink, warm neutral canvas, dark teal
+   Restrained enterprise palette: navy ink, white canvas, dark teal
    accent. Brand red is reserved for the company mark.
    --------------------------------------------------------------------------- */
 @theme {
@@ -21,10 +21,10 @@
   --color-faint: #96a0ab;
   --color-line: #e4e8ec;
   --color-line-strong: #cfd6dd;
-  --color-canvas: #f6f5f2;
+  --color-canvas: #ffffff;
   --color-surface: #ffffff;
-  --color-subtle: #fafaf8;
-  --color-hover: #f3f4f3;
+  --color-subtle: #f8f9fa;
+  --color-hover: #f2f4f6;
 
   --color-accent: #176a67;
   --color-accent-strong: #105250;

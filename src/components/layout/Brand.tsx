@@ -1,32 +1,49 @@
 import { clsx } from 'clsx';
+import { ChevronDown, Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Menu } from '@/components/ui/Menu';
 
 /** Company wordmark (Vio brand red). */
 export function Logo({ className, variant = 'red' }: { className?: string; variant?: 'red' | 'ink' | 'white' }) {
   return <img src={`/brand/vio-logo-${variant}.png`} alt="Vio" className={clsx('h-6 w-auto select-none', className)} draggable={false} />;
 }
 
-export function LanguageSwitcher({ className }: { className?: string }) {
+const LANGUAGES = [
+  { code: 'en', label: 'English', short: 'EN' },
+  { code: 'ar', label: 'العربية', short: 'ع' },
+] as const;
+
+/** Language selector: a compact dropdown showing the current language. */
+export function LanguageSwitcher({ className, side = 'bottom', align = 'end' }: { className?: string; side?: 'top' | 'bottom'; align?: 'start' | 'end' }) {
   const { i18n, t } = useTranslation();
-  const current = i18n.language === 'ar' ? 'ar' : 'en';
+  const current = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
   return (
-    <div role="group" aria-label={t('common.language')} className={clsx('inline-flex h-8 items-center rounded-[var(--radius-control)] border border-line-strong bg-surface p-0.5 text-[12.5px]', className)}>
-      {(['en', 'ar'] as const).map((lng) => (
-        <button
-          key={lng}
-          type="button"
-          lang={lng}
-          aria-pressed={current === lng}
-          onClick={() => void i18n.changeLanguage(lng)}
-          className={clsx(
-            'h-full rounded-[6px] px-2.5 font-medium transition-colors',
-            current === lng ? 'bg-ink text-white' : 'text-muted hover:text-ink',
-            lng === 'ar' && 'font-ar',
-          )}
-        >
-          {lng === 'en' ? 'English' : 'العربية'}
-        </button>
-      ))}
+    <div className={className}>
+      <Menu
+        side={side}
+        align={align}
+        minWidth={168}
+        trigger={(props) => (
+          <button
+            type="button"
+            {...props}
+            aria-label={`${t('common.language')}: ${current.label}`}
+            className="inline-flex h-8 items-center gap-2 rounded-[var(--radius-control)] border border-line-strong bg-surface ps-2.5 pe-2 text-[12.5px] font-medium text-ink transition-colors hover:bg-hover"
+          >
+            <Languages size={15} className="text-muted" aria-hidden="true" />
+            <span lang={current.code} className={clsx(current.code === 'ar' && 'font-ar')}>{current.label}</span>
+            <ChevronDown size={14} className="text-muted" aria-hidden="true" />
+          </button>
+        )}
+        items={LANGUAGES.map((l) => ({
+          label: l.label,
+          lang: l.code,
+          className: l.code === 'ar' ? 'font-ar' : undefined,
+          icon: <span className="inline-block w-5 text-center text-[11px] font-semibold">{l.short}</span>,
+          selected: l.code === current.code,
+          onSelect: () => void i18n.changeLanguage(l.code),
+        }))}
+      />
     </div>
   );
 }
