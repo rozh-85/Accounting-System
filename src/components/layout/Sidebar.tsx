@@ -7,23 +7,24 @@ import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { ROOMS } from '@/features/dashboard/rooms';
 import { LanguageSwitcher } from './Brand';
 
-function Item({ to, icon, label, end, badge }: { to: string; icon: ReactNode; label: string; end?: boolean; badge?: string }) {
+function Item({ to, icon, label, end, badge, iconClass }: { to: string; icon: ReactNode; label: string; end?: boolean; badge?: string; iconClass?: string }) {
   return (
     <NavLink
       to={to}
       end={end}
       className={({ isActive }) =>
         clsx(
-          'group flex h-9 items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 text-[13.5px] transition-colors',
-          isActive ? 'bg-ink text-white' : 'text-ink-soft hover:bg-hover hover:text-ink',
+          'group relative flex h-9 items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 text-[13.5px] transition-colors',
+          isActive ? 'bg-accent-soft font-medium text-accent-strong' : 'text-ink-soft hover:bg-hover hover:text-ink',
         )
       }
     >
       {({ isActive }) => (
         <>
-          <span className={clsx('shrink-0', isActive ? 'text-white' : 'text-muted group-hover:text-ink')}>{icon}</span>
+          {isActive && <span className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-accent" aria-hidden="true" />}
+          <span className={clsx('shrink-0', isActive ? 'text-accent' : iconClass ?? 'text-muted group-hover:text-ink')}>{icon}</span>
           <span className="min-w-0 flex-1 truncate">{label}</span>
-          {badge && <span className={clsx('num text-[11px]', isActive ? 'text-white/70' : 'text-faint')}>{badge}</span>}
+          {badge && <span className={clsx('num text-[11px]', isActive ? 'text-accent' : 'text-faint')}>{badge}</span>}
         </>
       )}
     </NavLink>
@@ -50,7 +51,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </Group>
       <Group label={t('nav.rooms')}>
         {ROOMS.map((room) => (
-          <Item key={room.key} to={room.path} icon={<room.icon size={16} />} label={t(`rooms.${room.key}.title`)} badge={room.number} />
+          <Item key={room.key} to={room.path} icon={<room.icon size={16} />} iconClass={room.color.text} label={t(`rooms.${room.key}.title`)} badge={room.number} />
         ))}
       </Group>
       <Group label={t('nav.management')}>

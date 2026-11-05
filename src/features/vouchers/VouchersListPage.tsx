@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { Pagination, Table, Td, Th, THead, Tr } from '@/components/tables/Table';
-import { StatusBadge } from '@/components/ui/Badge';
+import { StatusBadge, VoucherTypeBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
 import { Input, Select } from '@/components/ui/Field';
@@ -175,7 +175,7 @@ export function VouchersListPage() {
                   <Tr key={row.id} interactive tabIndex={0} onClick={() => navigate(`/journal/vouchers/${row.id}`)} onKeyDown={(e) => e.key === 'Enter' && navigate(`/journal/vouchers/${row.id}`)}>
                     <Td className="num font-medium">{row.voucher_number}</Td>
                     <Td className="num text-ink-soft">{formatDate(row.voucher_date)}</Td>
-                    <Td className="text-ink-soft">{t(`voucherTypes.${row.voucher_type}`)}</Td>
+                    <Td><VoucherTypeBadge type={row.voucher_type} /></Td>
                     <Td className="text-ink-soft">{row.party_name ?? <span className="text-faint">—</span>}</Td>
                     <Td><span className="line-clamp-1">{row.description}</span></Td>
                     <Td numeric>{formatAmount(row.amount, currency.decimals)}</Td>

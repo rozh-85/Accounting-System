@@ -26,7 +26,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
   const displayName = profile?.full_name || user?.email || '';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/90 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-t-[3px] border-b-line border-t-brand bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/90 lg:px-6">
       <IconButton label={t('nav.openMenu')} className="lg:hidden" onClick={onOpenNavigation}>
         <MenuIcon size={18} />
       </IconButton>
@@ -75,7 +75,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
               {...props}
               className="flex h-9 items-center gap-2 rounded-[var(--radius-control)] ps-1 pe-2 hover:bg-hover"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-line-strong bg-subtle text-[11px] font-semibold text-ink">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-white">
                 {initials(displayName)}
               </span>
               <span className="hidden max-w-[140px] truncate text-[13px] font-medium text-ink md:block">{displayName}</span>

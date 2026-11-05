@@ -304,15 +304,15 @@ export function FinancialPositionPage() {
                 </tbody>
               </table>
             </div>
-            <div className={clsx('flex flex-wrap items-center gap-x-6 gap-y-2 border-t px-5 py-4 text-[13px]', statement.isBalanced ? 'border-[#c4dcd9] bg-accent-soft' : 'border-[#e8c6c3] bg-danger-soft')}>
-              <span className={clsx('flex items-center gap-2 font-semibold', statement.isBalanced ? 'text-accent-strong' : 'text-danger')}>
+            <div className={clsx('flex flex-wrap items-center gap-x-6 gap-y-2 border-t px-5 py-4 text-[13px]', statement.isBalanced ? 'border-success-line bg-success-soft' : 'border-danger-line bg-danger-soft')}>
+              <span className={clsx('flex items-center gap-2 font-semibold', statement.isBalanced ? 'text-success-strong' : 'text-danger')}>
                 {statement.isBalanced ? <CircleCheck size={16} /> : <CircleAlert size={16} />}
                 {t('financialPosition.equation')}
               </span>
               <span className="num text-ink">
                 {formatUnits(tot.totalAssets, { decimals: currency.decimals, parentheses: true })} = {formatUnits(tot.totalLiabilities, { decimals: currency.decimals, parentheses: true })} + {formatUnits(tot.totalEquity, { decimals: currency.decimals, parentheses: true })}
               </span>
-              <span className={clsx('font-medium', statement.isBalanced ? 'text-accent-strong' : 'text-danger')}>
+              <span className={clsx('font-medium', statement.isBalanced ? 'text-success-strong' : 'text-danger')}>
                 {statement.isBalanced ? t('financialPosition.balanced') : t('financialPosition.difference', { difference: formatUnits(tot.difference, { decimals: currency.decimals }) })}
               </span>
             </div>

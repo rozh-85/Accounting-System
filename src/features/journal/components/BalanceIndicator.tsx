@@ -21,7 +21,7 @@ export function BalanceIndicator({
   const empty = totalDebit === 0n && totalCredit === 0n;
 
   return (
-    <div className={clsx('flex flex-wrap items-stretch overflow-hidden rounded-[10px] border', balanced ? 'border-[#c4dcd9]' : empty ? 'border-line' : 'border-[#e8c6c3]', className)}>
+    <div className={clsx('flex flex-wrap items-stretch overflow-hidden rounded-[10px] border', balanced ? 'border-success-line' : empty ? 'border-line' : 'border-danger-line', className)}>
       <div className="flex min-w-[140px] flex-1 flex-col justify-center px-4 py-2.5">
         <span className="text-[11.5px] text-muted">{t('journal.totalDebit')}</span>
         <span className="num text-[15px] font-semibold">{formatUnits(totalDebit, { decimals })}</span>
@@ -38,7 +38,7 @@ export function BalanceIndicator({
         role="status"
         className={clsx(
           'flex min-w-[170px] items-center gap-2 px-4 py-2.5 text-[13px] font-semibold',
-          balanced ? 'bg-accent-soft text-accent-strong' : empty ? 'bg-subtle text-muted' : 'bg-danger-soft text-danger',
+          balanced ? 'bg-success-soft text-success-strong' : empty ? 'bg-subtle text-muted' : 'bg-danger-soft text-danger',
         )}
       >
         {balanced ? <CircleCheck size={16} /> : <CircleAlert size={16} />}

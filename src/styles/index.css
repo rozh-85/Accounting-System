@@ -7,8 +7,13 @@
 
 /* ---------------------------------------------------------------------------
    Design tokens — Vio Accounting
-   Restrained enterprise palette: navy ink, white canvas, dark teal
-   accent. Brand red is reserved for the company mark.
+   Enterprise palette (see docs/color-palette.md):
+   - Ink/slate neutrals for text, lines and surfaces.
+   - Primary blue (accent) for actions, links, focus and navigation.
+   - Semantic colors: success (posted, balanced, open), warning (pending),
+     danger (reversed, out of balance), info (notices).
+   - Category colors for account types and rooms.
+   - Brand red is reserved for the company mark and the letterhead rule.
    --------------------------------------------------------------------------- */
 @theme {
   --font-sans: 'Inter Variable', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
@@ -26,16 +31,34 @@
   --color-subtle: #f8f9fa;
   --color-hover: #f2f4f6;
 
-  --color-accent: #176a67;
-  --color-accent-strong: #105250;
-  --color-accent-soft: #e8f1f0;
+  /* Primary: actions, links, focus, active navigation, assets */
+  --color-accent: #1f4e8c;
+  --color-accent-strong: #173c6d;
+  --color-accent-soft: #ebf2fa;
+  --color-accent-line: #c8d8ec;
 
-  --color-danger: #a1342e;
-  --color-danger-soft: #f9eceb;
-  --color-warning: #8a5a12;
-  --color-warning-soft: #f9f1e2;
-  --color-info: #2f4f78;
-  --color-info-soft: #edf1f6;
+  /* Semantic */
+  --color-success: #1b7a47;
+  --color-success-strong: #145c35;
+  --color-success-soft: #e8f5ee;
+  --color-success-line: #bde0cb;
+  --color-warning: #a15c07;
+  --color-warning-soft: #fdf4e3;
+  --color-warning-line: #f1d8a6;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeceb;
+  --color-danger-line: #f4c7c2;
+  --color-info: #0e6f86;
+  --color-info-soft: #e6f4f7;
+  --color-info-line: #b9dfe8;
+
+  /* Categories: liabilities, equity */
+  --color-orange: #c2410c;
+  --color-orange-soft: #fdf0e7;
+  --color-orange-line: #f5cfb6;
+  --color-purple: #6941c6;
+  --color-purple-soft: #f2edfb;
+  --color-purple-line: #d6c8f2;
 
   --color-brand: #a7282c;
 
@@ -64,7 +87,7 @@
     font-feature-settings: normal;
   }
   ::selection {
-    background: rgb(23 106 103 / 0.18);
+    background: rgb(31 78 140 / 0.18);
   }
   :focus-visible {
     outline: 2px solid var(--color-accent);

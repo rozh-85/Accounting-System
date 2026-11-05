@@ -10,11 +10,12 @@ const base =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-white hover:bg-[#0f1a2b] border border-ink',
-  accent: 'bg-accent text-white hover:bg-accent-strong border border-accent',
+  primary: 'bg-accent text-white hover:bg-accent-strong border border-accent',
+  /** Confirming actions such as Post. */
+  accent: 'bg-success text-white hover:bg-success-strong border border-success',
   secondary: 'bg-surface text-ink border border-line-strong hover:bg-hover',
   ghost: 'text-ink-soft hover:bg-hover hover:text-ink border border-transparent',
-  danger: 'bg-surface text-danger border border-[#e3c4c1] hover:bg-danger-soft',
+  danger: 'bg-surface text-danger border border-danger-line hover:bg-danger-soft',
   link: 'text-accent hover:text-accent-strong underline-offset-4 hover:underline border border-transparent px-0',
 };
 

@@ -164,7 +164,7 @@ export function TrialBalancePage() {
             role="status"
             className={clsx(
               'mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[12px] border px-4 py-3 text-[13px]',
-              result.isBalanced ? 'border-[#c4dcd9] bg-accent-soft text-accent-strong' : 'border-[#e8c6c3] bg-danger-soft text-danger',
+              result.isBalanced ? 'border-success-line bg-success-soft text-success-strong' : 'border-danger-line bg-danger-soft text-danger',
             )}
           >
             <span className="flex items-center gap-2 font-semibold">

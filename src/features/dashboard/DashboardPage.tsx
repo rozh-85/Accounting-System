@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,13 +24,14 @@ function RoomCard({ room, meta }: { room: RoomDefinition; meta?: ReactNode }) {
   return (
     <Link
       to={room.path}
-      className="group flex min-h-[214px] flex-col rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-[var(--shadow-card)] transition-colors hover:border-line-strong focus-visible:border-accent"
+      className="group relative flex min-h-[214px] flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-[var(--shadow-card)] transition-colors hover:border-line-strong focus-visible:border-accent"
     >
+      <span className={clsx('absolute inset-x-0 top-0 h-[3px]', room.color.bar)} aria-hidden="true" />
       <div className="flex items-start justify-between">
-        <span className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-line text-ink-soft transition-colors group-hover:border-line-strong group-hover:text-ink">
-          <Icon size={19} strokeWidth={1.6} />
+        <span className={clsx('flex h-10 w-10 items-center justify-center rounded-[10px]', room.color.soft, room.color.text)}>
+          <Icon size={19} strokeWidth={1.7} />
         </span>
-        <span className="num text-[12px] font-medium tracking-[0.08em] text-faint">{t('dashboard.room')} {room.number}</span>
+        <span className={clsx('num text-[12px] font-semibold tracking-[0.08em]', room.color.text)}>{t('dashboard.room')} {room.number}</span>
       </div>
 
       <div className="mt-5 pb-5">
@@ -51,11 +53,22 @@ function RoomCard({ room, meta }: { room: RoomDefinition; meta?: ReactNode }) {
   );
 }
 
-function Stat({ label, value, hint, to }: { label: string; value: ReactNode; hint?: ReactNode; to?: string }) {
+type StatTone = 'success' | 'neutral' | 'warning' | 'accent';
+const statTone: Record<StatTone, { dot: string; value: string }> = {
+  success: { dot: 'bg-success', value: 'text-success-strong' },
+  neutral: { dot: 'bg-faint', value: 'text-ink' },
+  warning: { dot: 'bg-[#d08a1c]', value: 'text-warning' },
+  accent: { dot: 'bg-accent', value: 'text-accent-strong' },
+};
+
+function Stat({ label, value, hint, to, tone = 'neutral' }: { label: string; value: ReactNode; hint?: ReactNode; to?: string; tone?: StatTone }) {
   const body = (
     <>
-      <p className="text-[12px] font-medium text-muted">{label}</p>
-      <p className="num mt-1.5 text-[20px] font-semibold text-ink">{value}</p>
+      <p className="flex items-center gap-2 text-[12px] font-medium text-muted">
+        <span className={clsx('h-2 w-2 rounded-full', statTone[tone].dot)} aria-hidden="true" />
+        {label}
+      </p>
+      <p className={clsx('num mt-1.5 text-[20px] font-semibold', statTone[tone].value)}>{value}</p>
       {hint && <p className="mt-0.5 text-[12px] text-muted">{hint}</p>}
     </>
   );
@@ -117,10 +130,11 @@ export function DashboardPage() {
       </section>
 
       <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line shadow-[var(--shadow-card)] lg:grid-cols-4">
-        <Stat label={t('dashboard.postedEntries')} value={data ? data.entries.posted + data.entries.reversed : '—'} hint={data?.last_posted_at ? t('dashboard.lastPosted', { date: formatDateTime(data.last_posted_at) }) : t('dashboard.nothingPosted')} to="/journal?status=posted" />
-        <Stat label={t('dashboard.drafts')} value={data ? data.entries.draft + data.vouchers.draft : '—'} hint={t('dashboard.draftsHint')} to="/journal?status=draft" />
-        <Stat label={t('dashboard.pendingApproval')} value={data ? data.entries.pending_approval + data.vouchers.pending_approval : '—'} hint={t('dashboard.pendingHint')} to="/journal?status=pending_approval" />
+        <Stat tone="success" label={t('dashboard.postedEntries')} value={data ? data.entries.posted + data.entries.reversed : '—'} hint={data?.last_posted_at ? t('dashboard.lastPosted', { date: formatDateTime(data.last_posted_at) }) : t('dashboard.nothingPosted')} to="/journal?status=posted" />
+        <Stat tone="neutral" label={t('dashboard.drafts')} value={data ? data.entries.draft + data.vouchers.draft : '—'} hint={t('dashboard.draftsHint')} to="/journal?status=draft" />
+        <Stat tone="warning" label={t('dashboard.pendingApproval')} value={data ? data.entries.pending_approval + data.vouchers.pending_approval : '—'} hint={t('dashboard.pendingHint')} to="/journal?status=pending_approval" />
         <Stat
+          tone="accent"
           label={t('dashboard.currentPeriod')}
           value={period ? formatPeriodName(period.name, language) : '—'}
           hint={period ? `${formatDate(period.start_date)} – ${formatDate(period.end_date)} · ${t(`periods.status.${period.status}`)}` : t('dashboard.noPeriod')}

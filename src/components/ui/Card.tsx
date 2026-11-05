@@ -46,7 +46,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-1 text-[12px] font-medium text-muted">{eyebrow}</div>}
+        {eyebrow && <div className="mb-1 text-[12px] font-semibold text-accent">{eyebrow}</div>}
         <h1 className="text-[21px] font-semibold tracking-[-0.01em] text-ink">{title}</h1>
         {subtitle && <p className="mt-1 text-[13px] text-muted">{subtitle}</p>}
       </div>
@@ -82,10 +82,10 @@ export function EmptyState({
 
 type AlertTone = 'info' | 'success' | 'warning' | 'danger';
 const tones: Record<AlertTone, string> = {
-  info: 'border-[#d5dfeb] bg-info-soft text-info',
-  success: 'border-[#c9dfdd] bg-accent-soft text-accent-strong',
-  warning: 'border-[#ecdcbc] bg-warning-soft text-warning',
-  danger: 'border-[#ecc9c6] bg-danger-soft text-danger',
+  info: 'border-info-line bg-info-soft text-info',
+  success: 'border-success-line bg-success-soft text-success-strong',
+  warning: 'border-warning-line bg-warning-soft text-warning',
+  danger: 'border-danger-line bg-danger-soft text-danger',
 };
 
 export function Alert({

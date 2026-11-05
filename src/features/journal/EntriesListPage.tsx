@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { AccountPicker } from '@/components/forms/AccountPicker';
 import { Pagination, Table, Td, Th, THead, Tr } from '@/components/tables/Table';
-import { StatusBadge } from '@/components/ui/Badge';
+import { EntryTypeBadge, StatusBadge } from '@/components/ui/Badge';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
 import { Input, Select } from '@/components/ui/Field';
@@ -251,7 +251,7 @@ export function EntriesListPage() {
                   >
                     <Td className="num font-medium text-ink">{row.entry_number}</Td>
                     <Td className="num text-ink-soft">{formatDate(row.entry_date)}</Td>
-                    <Td className="text-ink-soft">{t(`entryTypes.${row.entry_type}`)}</Td>
+                    <Td><EntryTypeBadge type={row.entry_type} /></Td>
                     <Td className="num text-ink-soft">{row.voucher_number ?? <span className="text-faint">—</span>}</Td>
                     <Td>
                       <div className="flex items-center gap-2">

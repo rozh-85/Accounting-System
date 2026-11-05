@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -65,9 +66,9 @@ function effectiveLines(values: Pick<FormValues, 'mode' | 'debitAccountId' | 'cr
 function SidePanel({ title, secondary, tone, children }: { title: string; secondary: string; tone: 'debit' | 'credit'; children: React.ReactNode }) {
   const { isRtl } = useLanguage();
   return (
-    <section className="rounded-[12px] border border-line bg-subtle/60 p-4">
+    <section className={clsx('rounded-[12px] border border-line border-t-[3px] bg-subtle/60 p-4', tone === 'debit' ? 'border-t-accent' : 'border-t-orange')}>
       <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2.5">
-        <h3 className="text-[13.5px] font-semibold text-ink">{title}</h3>
+        <h3 className={clsx('text-[13.5px] font-semibold', tone === 'debit' ? 'text-accent-strong' : 'text-orange')}>{title}</h3>
         <span lang={isRtl ? 'en' : 'ar'} className={isRtl ? 'text-[12px] text-muted' : 'font-ar text-[13px] text-muted'}>
           {secondary}
         </span>

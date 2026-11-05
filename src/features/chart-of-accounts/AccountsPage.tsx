@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
-import { Badge } from '@/components/ui/Badge';
+import { AccountTypeBadge, Badge } from '@/components/ui/Badge';
 import { Button, IconButton } from '@/components/ui/Button';
 import { Alert, Card, EmptyState, PageHeader } from '@/components/ui/Card';
 import { Dialog } from '@/components/ui/Dialog';
@@ -333,12 +333,12 @@ export function AccountsPage() {
                       <span>{name(a)}</span>
                       <span lang={isRtl ? 'en' : 'ar'} className={clsx('ms-2 text-[12px] font-normal text-muted', !isRtl && 'font-ar')}>{isRtl ? a.name_en : a.name_ar}</span>
                     </td>
-                    <td className="border-b border-line px-3 py-2 font-normal text-ink-soft">{t(`accountTypes.${a.account_type}`)}</td>
+                    <td className="border-b border-line px-3 py-2 font-normal"><AccountTypeBadge type={a.account_type} /></td>
                     <td className="border-b border-line px-3 py-2 font-normal text-ink-soft">{a.category_code ? categoryName.get(a.category_code) : '—'}</td>
                     <td className="border-b border-line px-3 py-2 font-normal text-ink-soft">{t(`journal.${a.normal_balance}`)}</td>
                     <td className="border-b border-line px-3 py-2 font-normal">{a.is_posting ? t('accounts.posting') : <Badge dot={false}>{t('accounts.header')}</Badge>}</td>
                     <td className="border-b border-line px-3 py-2 font-normal">
-                      {a.is_active ? <Badge tone="accent">{t('accounts.active')}</Badge> : <Badge>{t('accounts.inactive')}</Badge>}
+                      {a.is_active ? <Badge tone="success">{t('accounts.active')}</Badge> : <Badge>{t('accounts.inactive')}</Badge>}
                     </td>
                     <td className="border-b border-line py-1.5 pe-4">
                       {canManage && (
