@@ -1,0 +1,99 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
+
+/* ---------------------------------------------------------------------------
+   Design tokens — Vio Accounting
+   Restrained enterprise palette: navy ink, warm neutral canvas, dark teal
+   accent. Brand red is reserved for the company mark.
+   --------------------------------------------------------------------------- */
+@theme {
+  --font-sans: 'Inter Variable', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-num: 'Inter Variable', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #172438;
+  --color-ink-soft: #3a4759;
+  --color-muted: #637081;
+  --color-faint: #96a0ab;
+  --color-line: #e4e8ec;
+  --color-line-strong: #cfd6dd;
+  --color-canvas: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-subtle: #fafaf8;
+  --color-hover: #f3f4f3;
+
+  --color-accent: #176a67;
+  --color-accent-strong: #105250;
+  --color-accent-soft: #e8f1f0;
+
+  --color-danger: #a1342e;
+  --color-danger-soft: #f9eceb;
+  --color-warning: #8a5a12;
+  --color-warning-soft: #f9f1e2;
+  --color-info: #2f4f78;
+  --color-info-soft: #edf1f6;
+
+  --color-brand: #a7282c;
+
+  --radius-card: 14px;
+  --radius-control: 8px;
+
+  --shadow-card: 0 1px 2px rgb(23 36 56 / 0.05), 0 0 0 1px rgb(23 36 56 / 0.01);
+  --shadow-pop: 0 8px 24px rgb(23 36 56 / 0.1), 0 1px 3px rgb(23 36 56 / 0.06);
+}
+
+@layer base {
+  html {
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  html[lang='ar'] body {
+    font-family: var(--font-arabic);
+    font-feature-settings: normal;
+  }
+  ::selection {
+    background: rgb(23 106 103 / 0.18);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  input[type='date']::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Money, dates and codes: Latin tabular digits in both languages. */
+  .num {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    unicode-bidi: isolate;
+  }
+  .font-ar {
+    font-family: var(--font-arabic);
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+}
