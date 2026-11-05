@@ -12,10 +12,15 @@ import { Card, CardHeader, PageHeader } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { useAccountCategories, useAccounts, useDashboardSummary } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
-import { buildFinancialPosition, closingNet, formatUnits, sumsByAccount, type AccountBalanceRow, type Units } from '@/lib/accounting';
+import { buildFinancialPosition, closingNet, formatUnits, sumsByAccount, unitsToNumber, type AccountBalanceRow, type Units } from '@/lib/accounting';
 import { formatAmount, formatDate, formatDateTime, formatLongDate, formatPeriodName, todayIso } from '@/lib/formatting';
 import { rpc } from '@/lib/supabase/rpc';
 import type { JournalListRow } from '@/types/database';
+import { REPORTS } from '@/features/reports/ReportsPage';
+import { TileGrid, type TileMetric } from './OverviewTiles';
+import { TILES, useOverviewTiles, type TileKey } from './tiles';
+
+const compactNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 
 const RECENT_LIMIT = 8;
 
@@ -166,6 +171,34 @@ export function DashboardPage() {
   const netResult = figures?.netResult;
   const isLoss = netResult !== undefined && netResult < 0n;
 
+  const { accounts } = useAccounts();
+  const { selected } = useOverviewTiles();
+  const tiles = TILES.filter((tile) => selected.includes(tile.key) && (!tile.permission || can(tile.permission)));
+  const pendingTotal = data ? data.entries.pending_approval + data.vouchers.pending_approval : undefined;
+  const metrics: Partial<Record<TileKey, TileMetric>> = {
+    journal:
+      pendingTotal === undefined
+        ? undefined
+        : { value: pendingTotal, label: t('dashboard.tiles.pending'), tone: pendingTotal > 0 ? 'text-warning' : undefined },
+    ledger: data ? { value: data.posting_accounts, label: t('dashboard.tiles.postingAccounts') } : undefined,
+    trialBalance:
+      figures === null
+        ? undefined
+        : {
+            value: figures.trialBalanceAgrees ? t('dashboard.balanced') : t('dashboard.outOfBalance'),
+            label: t('dashboard.tiles.debitsCredits'),
+            tone: figures.trialBalanceAgrees ? 'text-success' : 'text-danger',
+          },
+    financialPosition:
+      figures === null
+        ? undefined
+        : { value: compactNumber.format(unitsToNumber(figures.totalAssets)), label: `${t('dashboard.totalAssets')} · ${currency.code}` },
+    accounts: accounts.length ? { value: accounts.length, label: t('dashboard.tiles.accounts') } : undefined,
+    vouchers: data ? { value: data.vouchers.draft + data.vouchers.pending_approval, label: t('dashboard.tiles.notPosted') } : undefined,
+    reports: { value: REPORTS.length, label: t('dashboard.tiles.templates') },
+    periods: data ? { value: data.open_periods, label: t('dashboard.tiles.openPeriods') } : undefined,
+  };
+
   return (
     <>
       <PageHeader
@@ -188,6 +221,20 @@ export function DashboardPage() {
           )
         }
       />
+
+      {tiles.length > 0 && (
+        <section aria-labelledby="overview-tiles" className="mb-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="overview-tiles" className="text-[14px] font-semibold text-ink">
+              {t('dashboard.tiles.heading')}
+            </h2>
+            <Link to="/settings?tab=overview" className="text-[12.5px] font-medium text-accent hover:underline">
+              {t('dashboard.tiles.customize')}
+            </Link>
+          </div>
+          <TileGrid tiles={tiles} metrics={metrics} />
+        </section>
+      )}
 
       <Card className="overflow-hidden">
         <CardHeader

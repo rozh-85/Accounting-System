@@ -31,6 +31,10 @@ export const en = {
     draftEntries: 'Draft entries', draftVouchers: 'Draft vouchers',
     periodPanel: 'Accounting period', fiscalYear: 'Fiscal year', period: 'Period', dates: 'Dates', status: 'Status',
     postedEntries: 'Posted entries', lastPosting: 'Last posting', managePeriods: 'Manage periods',
+    tiles: {
+      heading: 'Rooms and shortcuts', customize: 'Customize', pending: 'Pending approval', postingAccounts: 'Posting accounts',
+      debitsCredits: 'Debits equal credits', accounts: 'Accounts', notPosted: 'Not yet posted', templates: 'Report types', openPeriods: 'Open periods',
+    },
     checks: 'Balance checks', trialBalanceCheck: 'Trial balance', positionCheck: 'Assets = Liabilities + Equity', balanced: 'Balanced', outOfBalance: 'Out of balance',
   },
   auth: {
@@ -235,7 +239,11 @@ export const en = {
   },
   settings: {
     title: 'Settings', subtitle: 'Your role: {{role}}', readOnly: 'You can view these settings. Only administrators can change them.', savedToast: 'Settings saved',
-    tabs: { company: 'Company', accounting: 'Accounting', users: 'Users and roles', profile: 'My profile' },
+    tabs: { company: 'Company', accounting: 'Accounting', users: 'Users and roles', overview: 'Overview tiles', profile: 'My profile' },
+    overview: {
+      title: 'Overview tiles', hint: 'Choose which pages appear as square tiles on the overview. Your choice is saved for your account on this device.',
+      selected: 'Selected: {{count}}', reset: 'Restore defaults', view: 'View overview',
+    },
     company: {
       title: 'Company profile', hint: 'Shown in the header and on every report.', nameEn: 'Name (English)', nameAr: 'Name (Arabic)',
       legalName: 'Legal name', taxNumber: 'Tax number', registrationNumber: 'Registration number', phone: 'Phone', email: 'Email',

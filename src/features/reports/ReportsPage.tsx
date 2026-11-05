@@ -11,7 +11,7 @@ interface ReportItem {
   format: 'portrait' | 'landscape';
 }
 
-const REPORTS: ReportItem[] = [
+export const REPORTS: ReportItem[] = [
   { key: 'journal', icon: NotebookPen, to: '/journal', format: 'portrait' },
   { key: 'entry', icon: FileText, to: '/journal', format: 'portrait' },
   { key: 'voucher', icon: ReceiptText, to: '/journal/vouchers', format: 'portrait' },

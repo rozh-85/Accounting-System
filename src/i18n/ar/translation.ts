@@ -31,6 +31,10 @@ export const ar = {
     draftEntries: 'قيود مسودة', draftVouchers: 'سندات مسودة',
     periodPanel: 'الفترة المحاسبية', fiscalYear: 'السنة المالية', period: 'الفترة', dates: 'التواريخ', status: 'الحالة',
     postedEntries: 'القيود المرحّلة', lastPosting: 'آخر ترحيل', managePeriods: 'إدارة الفترات',
+    tiles: {
+      heading: 'الأقسام والاختصارات', customize: 'تخصيص', pending: 'بانتظار الاعتماد', postingAccounts: 'حسابات الترحيل',
+      debitsCredits: 'المدين يساوي الدائن', accounts: 'الحسابات', notPosted: 'غير مرحّلة', templates: 'أنواع التقارير', openPeriods: 'الفترات المفتوحة',
+    },
     checks: 'فحص التوازن', trialBalanceCheck: 'ميزان المراجعة', positionCheck: 'الأصول = الالتزامات + حقوق الملكية', balanced: 'متوازن', outOfBalance: 'غير متوازن',
   },
   auth: {
@@ -236,7 +240,11 @@ export const ar = {
   },
   settings: {
     title: 'الإعدادات', subtitle: 'صلاحيتك: {{role}}', readOnly: 'يمكنك عرض هذه الإعدادات، ويغيرها مدير النظام فقط.', savedToast: 'تم حفظ الإعدادات',
-    tabs: { company: 'الشركة', accounting: 'المحاسبة', users: 'المستخدمون والصلاحيات', profile: 'ملفي الشخصي' },
+    tabs: { company: 'الشركة', accounting: 'المحاسبة', users: 'المستخدمون والصلاحيات', overview: 'مربعات الصفحة الرئيسية', profile: 'ملفي الشخصي' },
+    overview: {
+      title: 'مربعات الصفحة الرئيسية', hint: 'اختر الصفحات التي تظهر كمربعات في الصفحة الرئيسية. يُحفظ اختيارك لحسابك على هذا الجهاز.',
+      selected: 'المحدد: {{count}}', reset: 'استعادة الافتراضي', view: 'عرض الصفحة الرئيسية',
+    },
     company: {
       title: 'بيانات الشركة', hint: 'تظهر في رأس الصفحة وفي جميع التقارير.', nameEn: 'الاسم (بالإنجليزية)', nameAr: 'الاسم (بالعربية)',
       legalName: 'الاسم القانوني', taxNumber: 'الرقم الضريبي', registrationNumber: 'رقم التسجيل', phone: 'الهاتف', email: 'البريد الإلكتروني',

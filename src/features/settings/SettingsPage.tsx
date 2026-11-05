@@ -3,6 +3,7 @@ import { Trash2, UserPlus } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { Badge } from '@/components/ui/Badge';
@@ -17,9 +18,12 @@ import { supabase } from '@/lib/supabase/client';
 import { errorMessage, toAppError } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import type { AppRole, Company } from '@/types/database';
+import { OverviewTilesTab } from './OverviewTilesTab';
 
 const ROLES: AppRole[] = ['admin', 'accountant', 'reviewer', 'viewer'];
-type Tab = 'company' | 'accounting' | 'users' | 'profile';
+const TABS = ['company', 'accounting', 'users', 'overview', 'profile'] as const;
+type Tab = (typeof TABS)[number];
+const isTab = (value: string | null): value is Tab => TABS.includes(value as Tab);
 
 function Section({ title, description, children, footer }: { title: string; description?: string; children: ReactNode; footer?: ReactNode }) {
   return (
@@ -368,11 +372,13 @@ function ProfileTab() {
 export function SettingsPage() {
   const { t } = useTranslation();
   const { can, role } = useCompany();
-  const [tab, setTab] = useState<Tab>('company');
+  const [params] = useSearchParams();
+  const requested = params.get('tab');
+  const [tab, setTab] = useState<Tab>(isTab(requested) ? requested : 'company');
   return (
     <>
       <PageHeader title={t('settings.title')} subtitle={role ? t('settings.subtitle', { role: t(`roles.${role}`) }) : undefined} />
-      {!can('settings.manage') && tab !== 'profile' && <Alert tone="info" className="mb-4">{t('settings.readOnly')}</Alert>}
+      {!can('settings.manage') && tab !== 'profile' && tab !== 'overview' && <Alert tone="info" className="mb-4">{t('settings.readOnly')}</Alert>}
       <Tabs<Tab>
         className="mb-5"
         value={tab}
@@ -381,12 +387,14 @@ export function SettingsPage() {
           { value: 'company', label: t('settings.tabs.company') },
           { value: 'accounting', label: t('settings.tabs.accounting') },
           { value: 'users', label: t('settings.tabs.users') },
+          { value: 'overview', label: t('settings.tabs.overview') },
           { value: 'profile', label: t('settings.tabs.profile') },
         ]}
       />
       {tab === 'company' && <CompanyTab />}
       {tab === 'accounting' && <AccountingTab />}
       {tab === 'users' && <UsersTab />}
+      {tab === 'overview' && <OverviewTilesTab />}
       {tab === 'profile' && <ProfileTab />}
     </>
   );
