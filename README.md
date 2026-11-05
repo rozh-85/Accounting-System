@@ -149,6 +149,13 @@ npm run test:db     # database rules, RLS and permissions on PGlite
 
 ## Deployment
 
+### Supabase (hosted) + Vercel — quick path
+1. **Database:** Supabase Dashboard → SQL Editor → New query → paste the whole of [`supabase/setup.sql`](supabase/setup.sql) → Run (once, on a fresh project). It contains every migration in order; regenerate it with `npm run db:setup-sql` after changing migrations.
+2. **Auth URLs:** Authentication → URL Configuration → set *Site URL* to your Vercel URL and add `https://<your-app>.vercel.app/**` to *Redirect URLs*.
+3. **Vercel:** import the GitHub repository; `vercel.json` sets the Vite build, `dist` output and SPA rewrites. The public Supabase URL and publishable key ship in `.env.production`; project environment variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` override them if set.
+
+### General
+
 ```bash
 npm run build
 ```

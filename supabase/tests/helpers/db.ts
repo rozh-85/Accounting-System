@@ -16,7 +16,7 @@ import { randomUUID } from 'node:crypto';
 const here = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = join(here, '..', '..', 'migrations');
 
-const SUPABASE_SHIM = `
+export const SUPABASE_SHIM = `
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
