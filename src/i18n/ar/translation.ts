@@ -30,7 +30,8 @@ export const ar = {
     workQueue: 'الأعمال المعلّقة', entriesPending: 'قيود بانتظار الاعتماد', vouchersPending: 'سندات بانتظار الاعتماد',
     draftEntries: 'قيود مسودة', draftVouchers: 'سندات مسودة',
     periodPanel: 'الفترة المحاسبية', fiscalYear: 'السنة المالية', period: 'الفترة', dates: 'التواريخ', status: 'الحالة',
-    postedEntries: 'القيود المرحّلة', lastPosting: 'آخر ترحيل', managePeriods: 'إدارة الفترات', rooms: 'الأقسام المحاسبية',
+    postedEntries: 'القيود المرحّلة', lastPosting: 'آخر ترحيل', managePeriods: 'إدارة الفترات',
+    checks: 'فحص التوازن', trialBalanceCheck: 'ميزان المراجعة', positionCheck: 'الأصول = الالتزامات + حقوق الملكية', balanced: 'متوازن', outOfBalance: 'غير متوازن',
   },
   auth: {
     signInTitle: 'تسجيل الدخول', signInSubtitle: 'استخدم حساب الشركة للمتابعة.', signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج',

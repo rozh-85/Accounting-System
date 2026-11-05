@@ -30,7 +30,8 @@ export const en = {
     workQueue: 'Work queue', entriesPending: 'Entries pending approval', vouchersPending: 'Vouchers pending approval',
     draftEntries: 'Draft entries', draftVouchers: 'Draft vouchers',
     periodPanel: 'Accounting period', fiscalYear: 'Fiscal year', period: 'Period', dates: 'Dates', status: 'Status',
-    postedEntries: 'Posted entries', lastPosting: 'Last posting', managePeriods: 'Manage periods', rooms: 'Accounting rooms',
+    postedEntries: 'Posted entries', lastPosting: 'Last posting', managePeriods: 'Manage periods',
+    checks: 'Balance checks', trialBalanceCheck: 'Trial balance', positionCheck: 'Assets = Liabilities + Equity', balanced: 'Balanced', outOfBalance: 'Out of balance',
   },
   auth: {
     signInTitle: 'Sign in', signInSubtitle: 'Use your company account to continue.', signIn: 'Sign in', signOut: 'Sign out',
