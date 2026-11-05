@@ -18,10 +18,10 @@ import { supabase } from '@/lib/supabase/client';
 import { errorMessage, toAppError } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import type { AppRole, Company } from '@/types/database';
-import { OverviewTilesTab } from './OverviewTilesTab';
+import { LayoutTab } from './LayoutTab';
 
 const ROLES: AppRole[] = ['admin', 'accountant', 'reviewer', 'viewer'];
-const TABS = ['company', 'accounting', 'users', 'overview', 'profile'] as const;
+const TABS = ['company', 'accounting', 'users', 'layout', 'profile'] as const;
 type Tab = (typeof TABS)[number];
 const isTab = (value: string | null): value is Tab => TABS.includes(value as Tab);
 
@@ -378,7 +378,7 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title={t('settings.title')} subtitle={role ? t('settings.subtitle', { role: t(`roles.${role}`) }) : undefined} />
-      {!can('settings.manage') && tab !== 'profile' && tab !== 'overview' && <Alert tone="info" className="mb-4">{t('settings.readOnly')}</Alert>}
+      {!can('settings.manage') && tab !== 'profile' && tab !== 'layout' && <Alert tone="info" className="mb-4">{t('settings.readOnly')}</Alert>}
       <Tabs<Tab>
         className="mb-5"
         value={tab}
@@ -387,14 +387,14 @@ export function SettingsPage() {
           { value: 'company', label: t('settings.tabs.company') },
           { value: 'accounting', label: t('settings.tabs.accounting') },
           { value: 'users', label: t('settings.tabs.users') },
-          { value: 'overview', label: t('settings.tabs.overview') },
+          { value: 'layout', label: t('settings.tabs.layout') },
           { value: 'profile', label: t('settings.tabs.profile') },
         ]}
       />
       {tab === 'company' && <CompanyTab />}
       {tab === 'accounting' && <AccountingTab />}
       {tab === 'users' && <UsersTab />}
-      {tab === 'overview' && <OverviewTilesTab />}
+      {tab === 'layout' && <LayoutTab />}
       {tab === 'profile' && <ProfileTab />}
     </>
   );

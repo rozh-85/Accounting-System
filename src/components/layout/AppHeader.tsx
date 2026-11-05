@@ -1,6 +1,7 @@
-import { Building2, ChevronDown, LogOut, Menu as MenuIcon, Settings } from 'lucide-react';
+import { clsx } from 'clsx';
+import { Building2, ChevronDown, LayoutGrid, LogOut, Menu as MenuIcon, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { Link, NavLink, useNavigate } from 'react-router';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { IconButton } from '@/components/ui/Button';
@@ -8,6 +9,7 @@ import { Menu } from '@/components/ui/Menu';
 import { useDashboardSummary } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatPeriodName } from '@/lib/formatting';
+import type { NavigationMode } from '@/features/dashboard/navigation';
 import { LanguageSwitcher, Logo } from './Brand';
 
 function initials(name: string) {
@@ -15,7 +17,7 @@ function initials(name: string) {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '·';
 }
 
-export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }) {
+export function AppHeader({ onOpenNavigation, mode }: { onOpenNavigation: () => void; mode: NavigationMode }) {
   const { t } = useTranslation();
   const { language, name } = useLanguage();
   const { user, signOut } = useAuth();
@@ -27,9 +29,11 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-t-[3px] border-b-line border-t-brand bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/90 lg:px-6">
-      <IconButton label={t('nav.openMenu')} className="lg:hidden" onClick={onOpenNavigation}>
-        <MenuIcon size={18} />
-      </IconButton>
+      {mode === 'sidebar' && (
+        <IconButton label={t('nav.openMenu')} className="lg:hidden" onClick={onOpenNavigation}>
+          <MenuIcon size={18} />
+        </IconButton>
+      )}
 
       <Link to="/" className="flex shrink-0 items-center gap-3" aria-label={t('nav.overview')}>
         <Logo className="h-[22px]" />
@@ -39,6 +43,22 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
         <p className="truncate text-[13.5px] font-semibold leading-tight text-ink">{name(company)}</p>
         <p className="truncate text-[11.5px] leading-tight text-muted">{t('app.productName')}</p>
       </div>
+      {mode === 'home' && (
+        <NavLink
+          to="/"
+          end
+          title={t('nav.home')}
+          className={({ isActive }) =>
+            clsx(
+              'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[12.5px] font-medium transition-colors sm:ms-2',
+              isActive ? 'border-accent-line bg-accent-soft text-accent-strong' : 'border-line-strong text-ink hover:bg-hover',
+            )
+          }
+        >
+          <LayoutGrid size={15} />
+          <span className="hidden sm:inline">{t('nav.home')}</span>
+        </NavLink>
+      )}
 
       <div className="ms-auto flex items-center gap-2 sm:gap-3">
         {period && (
@@ -54,7 +74,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
           </Link>
         )}
 
-        <LanguageSwitcher className="hidden sm:inline-flex" />
+        <LanguageSwitcher className={mode === 'home' ? 'inline-flex' : 'hidden sm:inline-flex'} />
 
         <IconButton label={t('nav.settings')} onClick={() => navigate('/settings')} className="hidden sm:inline-flex">
           <Settings size={17} />

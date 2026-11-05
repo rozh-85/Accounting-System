@@ -8,9 +8,9 @@ export const ar = {
     view: 'عرض', viewAll: 'عرض الكل', yes: 'نعم',
   },
   nav: {
-    main: 'التنقل الرئيسي', workspace: 'مساحة العمل', overview: 'الصفحة الرئيسية', rooms: 'الأقسام الرئيسية', management: 'الإدارة',
+    main: 'التنقل الرئيسي', workspace: 'مساحة العمل', overview: 'نظرة عامة', rooms: 'الأقسام الرئيسية', management: 'الإدارة',
     accounts: 'دليل الحسابات', vouchers: 'السندات', reports: 'التقارير', periods: 'الفترات المحاسبية', audit: 'سجل التدقيق',
-    settings: 'الإعدادات', openMenu: 'فتح القائمة', newCompany: 'إنشاء شركة أخرى',
+    settings: 'الإعدادات', home: 'الرئيسية', openMenu: 'فتح القائمة', newCompany: 'إنشاء شركة أخرى',
   },
   header: { period: 'الفترة', currentPeriod: 'الفترة المحاسبية الحالية', switchTo: 'الانتقال إلى {{name}}' },
   rooms: {
@@ -18,6 +18,14 @@ export const ar = {
     ledger: { title: 'حسابات الأستاذ / دفتر الأستاذ', description: 'حركات الحسابات وأرصدتها مستخرجة تلقائياً من القيود المرحّلة.', action: 'فتح دفتر الأستاذ' },
     trialBalance: { title: 'ميزان المراجعة', description: 'أرصدة أول المدة وحركة الفترة وأرصدة آخر المدة لجميع الحسابات.', action: 'فتح ميزان المراجعة' },
     financialPosition: { title: 'قائمة المركز المالي', description: 'الأصول والالتزامات وحقوق الملكية في أي تاريخ مع أرقام المقارنة.', action: 'فتح القائمة' },
+  },
+  home: {
+    descriptions: {
+      overview: 'الأرقام الرئيسية والأعمال المعلّقة', journal: 'القيود والسندات والاعتماد', ledger: 'حسابات الأستاذ وحركة الحسابات',
+      trialBalance: 'الأرصدة المدينة والدائنة', financialPosition: 'الأصول والالتزامات وحقوق الملكية', accounts: 'شجرة الحسابات وتصنيفاتها',
+      vouchers: 'سندات القبض والصرف والتحويل', reports: 'تقارير PDF بالعربية والإنجليزية', periods: 'السنوات المالية وإقفال الفترات',
+      audit: 'كل تغيير ومن قام به ومتى', settings: 'الشركة والمستخدمون والتخطيط',
+    },
   },
   dashboard: {
     room: 'القسم', subtitle: 'السنة المالية {{year}} · الفترة الحالية {{period}}', noPeriod: 'لا توجد فترة محاسبية تشمل تاريخ اليوم',
@@ -31,10 +39,6 @@ export const ar = {
     draftEntries: 'قيود مسودة', draftVouchers: 'سندات مسودة',
     periodPanel: 'الفترة المحاسبية', fiscalYear: 'السنة المالية', period: 'الفترة', dates: 'التواريخ', status: 'الحالة',
     postedEntries: 'القيود المرحّلة', lastPosting: 'آخر ترحيل', managePeriods: 'إدارة الفترات',
-    tiles: {
-      heading: 'الأقسام والاختصارات', customize: 'تخصيص', pending: 'بانتظار الاعتماد', postingAccounts: 'حسابات الترحيل',
-      debitsCredits: 'المدين يساوي الدائن', accounts: 'الحسابات', notPosted: 'غير مرحّلة', templates: 'أنواع التقارير', openPeriods: 'الفترات المفتوحة',
-    },
     checks: 'فحص التوازن', trialBalanceCheck: 'ميزان المراجعة', positionCheck: 'الأصول = الالتزامات + حقوق الملكية', balanced: 'متوازن', outOfBalance: 'غير متوازن',
   },
   auth: {
@@ -240,10 +244,11 @@ export const ar = {
   },
   settings: {
     title: 'الإعدادات', subtitle: 'صلاحيتك: {{role}}', readOnly: 'يمكنك عرض هذه الإعدادات، ويغيرها مدير النظام فقط.', savedToast: 'تم حفظ الإعدادات',
-    tabs: { company: 'الشركة', accounting: 'المحاسبة', users: 'المستخدمون والصلاحيات', overview: 'مربعات الصفحة الرئيسية', profile: 'ملفي الشخصي' },
-    overview: {
-      title: 'مربعات الصفحة الرئيسية', hint: 'اختر الصفحات التي تظهر كمربعات في الصفحة الرئيسية. يُحفظ اختيارك لحسابك على هذا الجهاز.',
-      selected: 'المحدد: {{count}}', reset: 'استعادة الافتراضي', view: 'عرض الصفحة الرئيسية',
+    tabs: { company: 'الشركة', accounting: 'المحاسبة', users: 'المستخدمون والصلاحيات', layout: 'التخطيط', profile: 'ملفي الشخصي' },
+    layout: {
+      title: 'طريقة التنقل', hint: 'اختر طريقة التنقل بين الأقسام. يُحفظ اختيارك لحسابك على هذا الجهاز.',
+      sidebar: 'قائمة جانبية', sidebarHint: 'تبقى الأقسام والصفحات ظاهرة على جانب كل شاشة.',
+      home: 'شاشة رئيسية', homeHint: 'شاشة رئيسية بمربعات للأقسام. افتح القسم ثم ارجع بزر الرئيسية.',
     },
     company: {
       title: 'بيانات الشركة', hint: 'تظهر في رأس الصفحة وفي جميع التقارير.', nameEn: 'الاسم (بالإنجليزية)', nameAr: 'الاسم (بالعربية)',

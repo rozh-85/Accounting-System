@@ -11,6 +11,8 @@ import { AuditLogPage } from '@/features/audit/AuditLogPage';
 import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SignUpPage } from '@/features/authentication/AuthPages';
 import { AccountsPage } from '@/features/chart-of-accounts/AccountsPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { HomePage } from '@/features/dashboard/HomePage';
+import { useNavigationMode } from '@/features/dashboard/navigation';
 import { FinancialPositionPage } from '@/features/financial-position/FinancialPositionPage';
 import { EntriesListPage } from '@/features/journal/EntriesListPage';
 import { EntryDetailPage } from '@/features/journal/EntryDetailPage';
@@ -55,6 +57,12 @@ function RequireCompany() {
   return <AppLayout />;
 }
 
+/** The start page follows the user's layout: the overview, or the home screen of tiles. */
+function HomeRoute() {
+  const [mode] = useNavigationMode();
+  return mode === 'home' ? <HomePage /> : <DashboardPage />;
+}
+
 function NotFound() {
   const { t } = useTranslation();
   return (
@@ -79,7 +87,8 @@ export const router = createBrowserRouter([
       {
         element: <RequireCompany />,
         children: [
-          { path: '/', element: <DashboardPage /> },
+          { path: '/', element: <HomeRoute /> },
+          { path: '/overview', element: <DashboardPage /> },
           {
             path: '/journal',
             element: <JournalRoomLayout />,

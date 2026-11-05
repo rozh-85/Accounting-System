@@ -10,7 +10,7 @@ export const en = {
   nav: {
     main: 'Main navigation', workspace: 'Workspace', overview: 'Overview', rooms: 'Rooms', management: 'Management',
     accounts: 'Chart of Accounts', vouchers: 'Vouchers', reports: 'Reports', periods: 'Accounting Periods', audit: 'Audit Log',
-    settings: 'Settings', openMenu: 'Open navigation', newCompany: 'Create another company',
+    settings: 'Settings', home: 'Home', openMenu: 'Open navigation', newCompany: 'Create another company',
   },
   header: { period: 'Period', currentPeriod: 'Current accounting period', switchTo: 'Switch to {{name}}' },
   rooms: {
@@ -18,6 +18,14 @@ export const en = {
     ledger: { title: 'T-Accounts & General Ledger', description: 'Account movements and balances drawn automatically from posted entries.', action: 'Open ledger' },
     trialBalance: { title: 'Trial Balance', description: 'Opening balances, period movements and closing balances for every account.', action: 'Open trial balance' },
     financialPosition: { title: 'Statement of Financial Position', description: 'Assets, liabilities and equity as of any date, with comparatives.', action: 'Open statement' },
+  },
+  home: {
+    descriptions: {
+      overview: 'Key figures and work queue', journal: 'Entries, vouchers and approvals', ledger: 'T-accounts and account movements',
+      trialBalance: 'Debit and credit balances', financialPosition: 'Assets, liabilities and equity', accounts: 'Account tree and categories',
+      vouchers: 'Receipts, payments and transfers', reports: 'PDF reports in Arabic and English', periods: 'Fiscal years and period closing',
+      audit: 'Every change, by whom and when', settings: 'Company, users and layout',
+    },
   },
   dashboard: {
     room: 'Room', subtitle: 'Fiscal year {{year}} · Current period {{period}}', noPeriod: 'No accounting period covers today',
@@ -31,10 +39,6 @@ export const en = {
     draftEntries: 'Draft entries', draftVouchers: 'Draft vouchers',
     periodPanel: 'Accounting period', fiscalYear: 'Fiscal year', period: 'Period', dates: 'Dates', status: 'Status',
     postedEntries: 'Posted entries', lastPosting: 'Last posting', managePeriods: 'Manage periods',
-    tiles: {
-      heading: 'Rooms and shortcuts', customize: 'Customize', pending: 'Pending approval', postingAccounts: 'Posting accounts',
-      debitsCredits: 'Debits equal credits', accounts: 'Accounts', notPosted: 'Not yet posted', templates: 'Report types', openPeriods: 'Open periods',
-    },
     checks: 'Balance checks', trialBalanceCheck: 'Trial balance', positionCheck: 'Assets = Liabilities + Equity', balanced: 'Balanced', outOfBalance: 'Out of balance',
   },
   auth: {
@@ -239,10 +243,11 @@ export const en = {
   },
   settings: {
     title: 'Settings', subtitle: 'Your role: {{role}}', readOnly: 'You can view these settings. Only administrators can change them.', savedToast: 'Settings saved',
-    tabs: { company: 'Company', accounting: 'Accounting', users: 'Users and roles', overview: 'Overview tiles', profile: 'My profile' },
-    overview: {
-      title: 'Overview tiles', hint: 'Choose which pages appear as square tiles on the overview. Your choice is saved for your account on this device.',
-      selected: 'Selected: {{count}}', reset: 'Restore defaults', view: 'View overview',
+    tabs: { company: 'Company', accounting: 'Accounting', users: 'Users and roles', layout: 'Layout', profile: 'My profile' },
+    layout: {
+      title: 'Navigation layout', hint: 'Choose how you move between rooms. Your choice is saved for your account on this device.',
+      sidebar: 'Sidebar', sidebarHint: 'Rooms and pages stay listed on the side of every screen.',
+      home: 'Home screen', homeHint: 'A home screen of room tiles. Open a room, then return with the Home button.',
     },
     company: {
       title: 'Company profile', hint: 'Shown in the header and on every report.', nameEn: 'Name (English)', nameAr: 'Name (Arabic)',
