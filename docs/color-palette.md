@@ -8,28 +8,40 @@ Each color has a **solid** (text/icons), **soft** (backgrounds) and **line** (bo
 
 | Token | Hex | Use |
 |---|---|---|
-| `ink` | `#172438` | Headings, primary text |
-| `ink-soft` | `#3A4759` | Body text |
-| `muted` | `#637081` | Secondary text, labels |
-| `faint` | `#96A0AB` | Placeholders, hints |
-| `line` / `line-strong` | `#E4E8EC` / `#CFD6DD` | Borders, dividers |
-| `canvas` / `surface` | `#FFFFFF` | Page and card backgrounds |
-| `subtle` / `hover` | `#F8F9FA` / `#F2F4F6` | Table headers, hover rows |
+| `ink` | `#1D2939` | Headings, primary text |
+| `ink-soft` | `#344054` | Body text |
+| `muted` | `#667085` | Secondary text, labels |
+| `faint` | `#98A2B3` | Placeholders, decorative hints only |
+| `line` / `line-strong` | `#EAECF0` / `#D0D5DD` | Borders, dividers, inputs |
+| `canvas` | `#F4F5F7` | Page background behind the cards |
+| `surface` | `#FFFFFF` | Cards, sidebar, top bar |
+| `subtle` / `hover` | `#F9FAFB` / `#F2F4F7` | Table headers, hover rows, segmented controls |
 
-## Primary and brand
+## Primary, accent and brand
 
 | Token | Solid | Soft | Line | Use |
 |---|---|---|---|---|
-| `accent` (primary blue) | `#1F4E8C` | `#EBF2FA` | `#C8D8EC` | Primary buttons, links, focus, active navigation, assets, debit side |
-| `brand` (Vio red) | `#A7282C` | — | — | Logo and the letterhead rule at the top of the app only |
+| `primary` (Vio red) | `#CF3530` | `#FDEEED` | `#F6CAC7` | Main call-to-action buttons, the active sidebar item, active tab underline, count badges in the sidebar (white text 5.0:1) |
+| `accent` (blue) | `#2563C9` | `#EBF2FD` | `#C7D9F6` | Links, focus rings, assets, the journal room (5.7:1 on white) |
+| `brand` (Vio logo red) | `#A7282C` | — | — | Logo and the sign-in brand panel |
+
+## Chart series
+
+Validated with the dataviz palette checker (lightness band, chroma, colour-blind separation, 3:1 contrast on white).
+
+| Token | Hex | Used for |
+|---|---|---|
+| `chart-1` | `#2F6FDB` | Cash in |
+| `chart-2` | `#C9620E` | Cash out, liabilities, expense bars |
+| `chart-3` | `#7C5CDB` | Equity |
 
 ## Semantic (status)
 
 | Token | Solid | Soft | Line | Meaning |
 |---|---|---|---|---|
-| `success` | `#1B7A47` | `#E8F5EE` | `#BDE0CB` | Posted, balanced, open period, active, Post button |
-| `warning` | `#A15C07` | `#FDF4E3` | `#F1D8A6` | Pending approval, rejected drafts, abnormal balance |
-| `danger` | `#B42318` | `#FDECEB` | `#F4C7C2` | Reversed, out of balance, errors, destructive actions |
+| `success` | `#1B7A47` | `#ECFDF3` | `#ABEFC6` | Posted, balanced, open period, active, Post button |
+| `warning` | `#A15C07` | `#FFFAEB` | `#FEDF89` | Pending approval, rejected drafts, abnormal balance |
+| `danger` | `#B42318` | `#FEF3F2` | `#FECDCA` | Reversed, out of balance, errors, destructive actions |
 | `info` | `#0E6F86` | `#E6F4F7` | `#B9DFE8` | Notices, opening entries, transfers |
 
 ## Categories
@@ -50,6 +62,7 @@ Each color has a **solid** (text/icons), **soft** (backgrounds) and **line** (bo
 | Voucher type | Receipt · green — Payment · orange — Journal · blue — Transfer · info |
 | Rooms | 01 Journal · blue — 02 Ledger · teal — 03 Trial Balance · purple — 04 Financial Position · green |
 | Journal form | Debit panel · blue — Credit panel · orange |
+| Navigation | Active item · primary red with white text — badges · primary soft |
 | Balance checks | Balanced · success — Out of balance · danger |
 
 All text colors meet WCAG AA contrast (4.5:1) on white and on their own soft background.

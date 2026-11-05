@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 export const controlClass =
-  'block w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 text-[13.5px] text-ink placeholder:text-faint transition-colors hover:border-[#b9c2cb] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/15';
+  'block w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3.5 text-[13.5px] text-ink shadow-[var(--shadow-xs)] placeholder:text-faint transition-colors hover:border-[#b6bdc8] focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent/12 disabled:cursor-not-allowed disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/15';
 
 interface FieldProps {
   label?: ReactNode;
@@ -50,7 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   { className, ...rest },
   ref,
 ) {
-  return <input ref={ref} className={clsx(controlClass, 'h-9', className)} {...rest} />;
+  return <input ref={ref} className={clsx(controlClass, 'h-10', className)} {...rest} />;
 });
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select(
@@ -58,7 +58,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   ref,
 ) {
   return (
-    <select ref={ref} className={clsx(controlClass, 'h-9 pe-8', className)} {...rest}>
+    <select ref={ref} className={clsx(controlClass, 'h-10 pe-8', className)} {...rest}>
       {children}
     </select>
   );

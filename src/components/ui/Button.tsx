@@ -10,18 +10,18 @@ const base =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-strong border border-accent',
+  primary: 'bg-primary text-white hover:bg-primary-strong border border-primary shadow-[var(--shadow-xs)]',
   /** Confirming actions such as Post. */
-  accent: 'bg-success text-white hover:bg-success-strong border border-success',
-  secondary: 'bg-surface text-ink border border-line-strong hover:bg-hover',
+  accent: 'bg-success text-white hover:bg-success-strong border border-success shadow-[var(--shadow-xs)]',
+  secondary: 'bg-surface text-ink-soft border border-line-strong shadow-[var(--shadow-xs)] hover:bg-subtle hover:text-ink',
   ghost: 'text-ink-soft hover:bg-hover hover:text-ink border border-transparent',
   danger: 'bg-surface text-danger border border-danger-line hover:bg-danger-soft',
   link: 'text-accent hover:text-accent-strong underline-offset-4 hover:underline border border-transparent px-0',
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-[13px]',
-  md: 'h-9 px-4 text-[13.5px]',
+  sm: 'h-9 px-3.5 text-[13px]',
+  md: 'h-10 px-4 text-[13.5px]',
 };
 
 export function buttonClass(variant: ButtonVariant = 'secondary', size: ButtonSize = 'md', className?: string) {
@@ -74,7 +74,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={clsx(
-        'inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-muted transition-colors hover:bg-hover hover:text-ink disabled:opacity-40',
+        'inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-muted transition-colors hover:bg-hover hover:text-ink disabled:opacity-40',
         className,
       )}
       {...rest}

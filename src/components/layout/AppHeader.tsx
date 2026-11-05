@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
-import { Building2, ChevronDown, LayoutGrid, LogOut, Menu as MenuIcon, Settings } from 'lucide-react';
+import { Building2, ChevronDown, ChevronRight, LayoutGrid, LogOut, Menu as MenuIcon, PanelLeftOpen, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { IconButton } from '@/components/ui/Button';
@@ -17,32 +17,65 @@ function initials(name: string) {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '·';
 }
 
-export function AppHeader({ onOpenNavigation, mode }: { onOpenNavigation: () => void; mode: NavigationMode }) {
+/** Page names for the breadcrumb, most specific path first. */
+const PAGE_TITLES: Array<[string, string]> = [
+  ['/journal/vouchers', 'nav.vouchers'],
+  ['/journal/recurring', 'rooms.journal.title'],
+  ['/journal', 'rooms.journal.title'],
+  ['/ledger', 'rooms.ledger.title'],
+  ['/trial-balance', 'rooms.trialBalance.title'],
+  ['/financial-position', 'rooms.financialPosition.title'],
+  ['/accounts', 'nav.accounts'],
+  ['/reports', 'nav.reports'],
+  ['/periods', 'nav.periods'],
+  ['/audit', 'nav.audit'],
+  ['/settings', 'nav.settings'],
+  ['/overview', 'nav.overview'],
+];
+
+export function AppHeader({
+  mode,
+  onOpenNavigation,
+  sidebarCollapsed,
+  onExpandSidebar,
+}: {
+  mode: NavigationMode;
+  onOpenNavigation: () => void;
+  sidebarCollapsed: boolean;
+  onExpandSidebar: () => void;
+}) {
   const { t } = useTranslation();
   const { language, name } = useLanguage();
   const { user, signOut } = useAuth();
   const { company, companies, role, profile, switchCompany } = useCompany();
   const summary = useDashboardSummary();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const period = summary.data?.current_period;
   const displayName = profile?.full_name || user?.email || '';
 
+  const pageKey = PAGE_TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1] ?? (mode === 'home' ? 'nav.home' : 'nav.overview');
+
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-t-[3px] border-b-line border-t-brand bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/90 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line bg-surface/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:gap-3 sm:px-6">
       {mode === 'sidebar' && (
-        <IconButton label={t('nav.openMenu')} className="lg:hidden" onClick={onOpenNavigation}>
-          <MenuIcon size={18} />
-        </IconButton>
+        <>
+          <IconButton label={t('nav.openMenu')} className="border border-line lg:hidden" onClick={onOpenNavigation}>
+            <MenuIcon size={18} />
+          </IconButton>
+          {sidebarCollapsed && (
+            <IconButton label={t('nav.expand')} className="hidden border border-line lg:inline-flex" onClick={onExpandSidebar}>
+              <PanelLeftOpen size={18} className="rtl:-scale-x-100" />
+            </IconButton>
+          )}
+        </>
       )}
 
-      <Link to="/" className="flex shrink-0 items-center gap-3" aria-label={t('nav.overview')}>
+      {/* Logo: always in the home-screen layout; on small screens in the sidebar layout. */}
+      <Link to="/" className={clsx('flex shrink-0 items-center', mode === 'sidebar' && 'lg:hidden')} aria-label={t('nav.overview')}>
         <Logo className="h-[22px]" />
       </Link>
-      <span className="hidden h-6 w-px bg-line sm:block" aria-hidden="true" />
-      <div className="hidden min-w-0 sm:block">
-        <p className="truncate text-[13.5px] font-semibold leading-tight text-ink">{name(company)}</p>
-        <p className="truncate text-[11.5px] leading-tight text-muted">{t('app.productName')}</p>
-      </div>
+
       {mode === 'home' && (
         <NavLink
           to="/"
@@ -50,8 +83,8 @@ export function AppHeader({ onOpenNavigation, mode }: { onOpenNavigation: () => 
           title={t('nav.home')}
           className={({ isActive }) =>
             clsx(
-              'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[12.5px] font-medium transition-colors sm:ms-2',
-              isActive ? 'border-accent-line bg-accent-soft text-accent-strong' : 'border-line-strong text-ink hover:bg-hover',
+              'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-[13px] font-medium transition-colors sm:ms-1',
+              isActive ? 'border-primary bg-primary text-white shadow-[var(--shadow-primary)]' : 'border-line-strong text-ink-soft hover:bg-hover',
             )
           }
         >
@@ -60,23 +93,30 @@ export function AppHeader({ onOpenNavigation, mode }: { onOpenNavigation: () => 
         </NavLink>
       )}
 
+      {/* Breadcrumb */}
+      <nav aria-label={t('nav.breadcrumb')} className="hidden min-w-0 items-center gap-1.5 text-[13px] md:flex md:ps-1">
+        <span className="truncate text-muted">{name(company)}</span>
+        <ChevronRight size={14} className="shrink-0 text-faint rtl:-scale-x-100" aria-hidden="true" />
+        <span className="truncate font-medium text-ink">{t(pageKey)}</span>
+      </nav>
+
       <div className="ms-auto flex items-center gap-2 sm:gap-3">
         {period && (
           <Link
             to="/periods"
-            className="hidden h-8 items-center gap-2 rounded-[var(--radius-control)] border border-line px-2.5 text-[12.5px] text-ink-soft hover:bg-hover md:inline-flex"
+            className="hidden h-9 items-center gap-2 rounded-[var(--radius-control)] border border-line px-3 text-[12.5px] text-ink-soft transition-colors hover:bg-hover xl:inline-flex"
             title={t('header.currentPeriod')}
           >
+            <span className={period.status === 'open' ? 'h-2 w-2 rounded-full bg-success' : 'h-2 w-2 rounded-full bg-faint'} aria-hidden="true" />
             <span className="text-muted">{t('header.period')}</span>
             <span className="font-medium text-ink">{formatPeriodName(period.name, language)}</span>
-            <span className={period.status === 'open' ? 'h-1.5 w-1.5 rounded-full bg-accent' : 'h-1.5 w-1.5 rounded-full bg-faint'} aria-hidden="true" />
             <span className="sr-only">{t(`periods.status.${period.status}`)}</span>
           </Link>
         )}
 
-        <LanguageSwitcher className={mode === 'home' ? 'inline-flex' : 'hidden sm:inline-flex'} />
+        <LanguageSwitcher />
 
-        <IconButton label={t('nav.settings')} onClick={() => navigate('/settings')} className="hidden sm:inline-flex">
+        <IconButton label={t('nav.settings')} onClick={() => navigate('/settings')} className="hidden border border-line sm:inline-flex">
           <Settings size={17} />
         </IconButton>
 
@@ -86,20 +126,16 @@ export function AppHeader({ onOpenNavigation, mode }: { onOpenNavigation: () => 
             <div className="min-w-0">
               <p className="truncate text-[13px] font-medium text-ink">{displayName}</p>
               <p className="truncate text-[12px] text-muted">{user?.email}</p>
-              {role && <p className="mt-1 text-[11.5px] font-medium text-accent">{t(`roles.${role}`)}</p>}
+              {role && <p className="mt-1 text-[11.5px] font-medium text-primary">{t(`roles.${role}`)}</p>}
             </div>
           }
           trigger={(props) => (
-            <button
-              type="button"
-              {...props}
-              className="flex h-9 items-center gap-2 rounded-[var(--radius-control)] ps-1 pe-2 hover:bg-hover"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-white">
+            <button type="button" {...props} className="flex h-10 items-center gap-2 rounded-full ps-0.5 pe-2 transition-colors hover:bg-hover sm:rounded-[var(--radius-control)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-[12px] font-semibold text-primary">
                 {initials(displayName)}
               </span>
-              <span className="hidden max-w-[140px] truncate text-[13px] font-medium text-ink md:block">{displayName}</span>
-              <ChevronDown size={14} className="text-muted" />
+              <span className="hidden max-w-[150px] truncate text-[13px] font-medium text-ink md:block">{displayName}</span>
+              <ChevronDown size={15} className="hidden text-muted sm:block" />
             </button>
           )}
           items={[

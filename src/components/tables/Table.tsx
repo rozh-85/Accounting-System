@@ -23,7 +23,7 @@ export function Th({ numeric, className, children, ...rest }: ThHTMLAttributes<H
     <th
       scope="col"
       className={clsx(
-        'h-10 border-b border-line px-3 text-[12px] font-medium whitespace-nowrap text-muted first:ps-5 last:pe-5',
+        'h-11 border-b border-line px-3 text-[12px] font-medium whitespace-nowrap text-muted first:ps-5 last:pe-5 sm:first:ps-6 sm:last:pe-6',
         numeric ? 'text-end' : 'text-start',
         className,
       )}
@@ -38,7 +38,7 @@ export function Td({ numeric, className, children, ...rest }: TdHTMLAttributes<H
   return (
     <td
       className={clsx(
-        'border-b border-line px-3 py-2.5 align-middle first:ps-5 last:pe-5',
+        'border-b border-line px-3 py-3 align-middle first:ps-5 last:pe-5 sm:first:ps-6 sm:last:pe-6 [&.num]:whitespace-nowrap',
         numeric ? 'num text-end whitespace-nowrap' : 'text-start',
         className,
       )}

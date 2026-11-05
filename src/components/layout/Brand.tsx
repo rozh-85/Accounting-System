@@ -28,11 +28,12 @@ export function LanguageSwitcher({ className, side = 'bottom', align = 'end' }: 
             type="button"
             {...props}
             aria-label={`${t('common.language')}: ${current.label}`}
-            className="inline-flex h-8 items-center gap-2 rounded-[var(--radius-control)] border border-line-strong bg-surface ps-2.5 pe-2 text-[12.5px] font-medium text-ink transition-colors hover:bg-hover"
+            className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-2.5 text-[12.5px] font-medium text-ink transition-colors hover:bg-hover"
           >
-            <Languages size={15} className="text-muted" aria-hidden="true" />
-            <span lang={current.code} className={clsx(current.code === 'ar' && 'font-ar')}>{current.label}</span>
-            <ChevronDown size={14} className="text-muted" aria-hidden="true" />
+            <Languages size={16} className="text-muted" aria-hidden="true" />
+            <span lang={current.code} className={clsx('hidden sm:inline', current.code === 'ar' && 'font-ar')}>{current.label}</span>
+            <span lang={current.code} className="num text-[12px] font-semibold sm:hidden">{current.short}</span>
+            <ChevronDown size={14} className="hidden text-muted sm:block" aria-hidden="true" />
           </button>
         )}
         items={LANGUAGES.map((l) => ({

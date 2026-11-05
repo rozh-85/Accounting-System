@@ -22,9 +22,9 @@ export function CardHeader({
   className?: string;
 }) {
   return (
-    <div className={clsx('flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4', className)}>
+    <div className={clsx('flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4 sm:px-6', className)}>
       <div className="min-w-0">
-        <h2 className="text-[14.5px] font-semibold text-ink">{title}</h2>
+        <h2 className="text-[15.5px] font-semibold text-ink">{title}</h2>
         {description && <p className="mt-0.5 text-[12.5px] text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -46,9 +46,9 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-1 text-[12px] font-semibold text-accent">{eyebrow}</div>}
-        <h1 className="text-[21px] font-semibold tracking-[-0.01em] text-ink">{title}</h1>
-        {subtitle && <p className="mt-1 text-[13px] text-muted">{subtitle}</p>}
+        {eyebrow && <div className="mb-1 text-[12.5px] font-medium text-muted">{eyebrow}</div>}
+        <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink sm:text-[24px]">{title}</h1>
+        {subtitle && <p className="mt-1 text-[13.5px] text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -72,7 +72,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      {icon && <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg border border-line text-faint">{icon}</div>}
+      {icon && <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-hover text-muted">{icon}</div>}
       <p className="text-[14px] font-medium text-ink">{title}</p>
       {description && <p className="mt-1 max-w-md text-[13px] text-muted">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
@@ -104,7 +104,7 @@ export function Alert({
   action?: ReactNode;
 }) {
   return (
-    <div role={tone === 'danger' ? 'alert' : 'status'} className={clsx('flex items-start gap-3 rounded-[10px] border px-4 py-3 text-[13px]', tones[tone], className)}>
+    <div role={tone === 'danger' ? 'alert' : 'status'} className={clsx('flex items-start gap-3 rounded-xl border px-4 py-3 text-[13px]', tones[tone], className)}>
       {icon && <span className="mt-0.5 shrink-0">{icon}</span>}
       <div className="min-w-0 flex-1">
         {title && <p className="font-semibold">{title}</p>}

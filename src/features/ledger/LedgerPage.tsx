@@ -25,9 +25,9 @@ export function RoomHeading({ number, roomKey }: { number: string; roomKey: stri
   const { t } = useTranslation();
   return (
     <div className="mb-5">
-      <p className="num mb-1 text-[12px] font-medium tracking-[0.06em] text-faint">{t('dashboard.room')} {number}</p>
-      <h1 className="text-[21px] font-semibold tracking-[-0.01em]">{t(`rooms.${roomKey}.title`)}</h1>
-      <p className="mt-1 text-[13px] text-muted">{t(`rooms.${roomKey}.description`)}</p>
+      <p className="num mb-1 text-[12.5px] font-medium text-muted">{t('dashboard.room')} {number}</p>
+      <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink sm:text-[24px]">{t(`rooms.${roomKey}.title`)}</h1>
+      <p className="mt-1 text-[13.5px] text-muted">{t(`rooms.${roomKey}.description`)}</p>
     </div>
   );
 }

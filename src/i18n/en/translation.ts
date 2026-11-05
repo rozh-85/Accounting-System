@@ -10,7 +10,8 @@ export const en = {
   nav: {
     main: 'Main navigation', workspace: 'Workspace', overview: 'Overview', rooms: 'Rooms', management: 'Management',
     accounts: 'Chart of Accounts', vouchers: 'Vouchers', reports: 'Reports', periods: 'Accounting Periods', audit: 'Audit Log',
-    settings: 'Settings', home: 'Home', openMenu: 'Open navigation', newCompany: 'Create another company',
+    settings: 'Settings', home: 'Home', openMenu: 'Open navigation', closeMenu: 'Close navigation', menu: 'Menu',
+    search: 'Search menu', noResults: 'No matching pages', collapse: 'Collapse sidebar', expand: 'Expand sidebar', breadcrumb: 'Breadcrumb', newCompany: 'Create another company',
   },
   header: { period: 'Period', currentPeriod: 'Current accounting period', switchTo: 'Switch to {{name}}' },
   rooms: {
@@ -39,6 +40,12 @@ export const en = {
     draftEntries: 'Draft entries', draftVouchers: 'Draft vouchers',
     periodPanel: 'Accounting period', fiscalYear: 'Fiscal year', period: 'Period', dates: 'Dates', status: 'Status',
     postedEntries: 'Posted entries', lastPosting: 'Last posting', managePeriods: 'Manage periods',
+    vsLastMonth: 'vs last month', thisMonth: 'this month', noComparison: 'No prior month to compare',
+    cashFlow: 'Cash flow', cashFlowHint: 'Cash and bank receipts and payments by month', cashIn: 'Cash in', cashOut: 'Cash out', netCash: 'Net cash',
+    noCashMovements: 'No cash movements in this fiscal year yet.',
+    funding: 'Financing of assets', fundingHint: 'Liabilities and equity as of {{date}}', equityShare: 'Equity share', liabilities: 'Liabilities', equity: 'Equity',
+    noFunding: 'No balances yet.', expenses: 'Expenses by account', expensesHint: 'Fiscal year to date', revenue: 'Revenue', totalExpenses: 'Total expenses',
+    otherExpenses: 'Other accounts', noExpenses: 'No expenses posted in this fiscal year yet.',
     checks: 'Balance checks', trialBalanceCheck: 'Trial balance', positionCheck: 'Assets = Liabilities + Equity', balanced: 'Balanced', outOfBalance: 'Out of balance',
   },
   auth: {

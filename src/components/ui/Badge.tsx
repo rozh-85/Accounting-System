@@ -18,7 +18,7 @@ const tones: Record<BadgeTone, { box: string; dot: string }> = {
 
 export function Badge({ tone = 'neutral', children, dot = true, className }: { tone?: BadgeTone; children: ReactNode; dot?: boolean; className?: string }) {
   return (
-    <span className={clsx('inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11.5px] font-medium', tones[tone].box, className)}>
+    <span className={clsx('inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium', tones[tone].box, className)}>
       {dot && <span className={clsx('h-1.5 w-1.5 rounded-full', tones[tone].dot)} aria-hidden="true" />}
       {children}
     </span>

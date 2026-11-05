@@ -10,7 +10,8 @@ export const ar = {
   nav: {
     main: 'التنقل الرئيسي', workspace: 'مساحة العمل', overview: 'نظرة عامة', rooms: 'الأقسام الرئيسية', management: 'الإدارة',
     accounts: 'دليل الحسابات', vouchers: 'السندات', reports: 'التقارير', periods: 'الفترات المحاسبية', audit: 'سجل التدقيق',
-    settings: 'الإعدادات', home: 'الرئيسية', openMenu: 'فتح القائمة', newCompany: 'إنشاء شركة أخرى',
+    settings: 'الإعدادات', home: 'الرئيسية', openMenu: 'فتح القائمة', closeMenu: 'إغلاق القائمة', menu: 'القائمة',
+    search: 'البحث في القائمة', noResults: 'لا توجد صفحات مطابقة', collapse: 'طي القائمة الجانبية', expand: 'توسيع القائمة الجانبية', breadcrumb: 'مسار التنقل', newCompany: 'إنشاء شركة أخرى',
   },
   header: { period: 'الفترة', currentPeriod: 'الفترة المحاسبية الحالية', switchTo: 'الانتقال إلى {{name}}' },
   rooms: {
@@ -39,6 +40,12 @@ export const ar = {
     draftEntries: 'قيود مسودة', draftVouchers: 'سندات مسودة',
     periodPanel: 'الفترة المحاسبية', fiscalYear: 'السنة المالية', period: 'الفترة', dates: 'التواريخ', status: 'الحالة',
     postedEntries: 'القيود المرحّلة', lastPosting: 'آخر ترحيل', managePeriods: 'إدارة الفترات',
+    vsLastMonth: 'مقارنة بالشهر الماضي', thisMonth: 'هذا الشهر', noComparison: 'لا يوجد شهر سابق للمقارنة',
+    cashFlow: 'التدفق النقدي', cashFlowHint: 'المقبوضات والمدفوعات النقدية والمصرفية حسب الشهر', cashIn: 'النقد الداخل', cashOut: 'النقد الخارج', netCash: 'صافي النقد',
+    noCashMovements: 'لا توجد حركات نقدية في هذه السنة المالية بعد.',
+    funding: 'تمويل الأصول', fundingHint: 'الالتزامات وحقوق الملكية في {{date}}', equityShare: 'نسبة حقوق الملكية', liabilities: 'الالتزامات', equity: 'حقوق الملكية',
+    noFunding: 'لا توجد أرصدة بعد.', expenses: 'المصروفات حسب الحساب', expensesHint: 'منذ بداية السنة المالية', revenue: 'الإيرادات', totalExpenses: 'مجموع المصروفات',
+    otherExpenses: 'حسابات أخرى', noExpenses: 'لم تُرحَّل مصروفات في هذه السنة المالية بعد.',
     checks: 'فحص التوازن', trialBalanceCheck: 'ميزان المراجعة', positionCheck: 'الأصول = الالتزامات + حقوق الملكية', balanced: 'متوازن', outOfBalance: 'غير متوازن',
   },
   auth: {

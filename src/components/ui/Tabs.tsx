@@ -21,7 +21,7 @@ export function Tabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div role="tablist" className={clsx('flex gap-1 border-b border-line', className)}>
+    <div role="tablist" className={clsx('flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line scrollbar-thin', className)}>
       {items.map((item) => {
         const selected = item.value === value;
         return (
@@ -32,8 +32,8 @@ export function Tabs<T extends string>({
             aria-selected={selected}
             onClick={() => onChange(item.value)}
             className={clsx(
-              '-mb-px inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[13.5px] font-medium transition-colors',
-              selected ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
+              '-mb-px inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[13.5px] font-medium whitespace-nowrap transition-colors',
+              selected ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink',
             )}
           >
             {item.label}
@@ -50,7 +50,7 @@ export function Tabs<T extends string>({
 /** Route-based tabs (each tab is a URL). */
 export function NavTabs({ items, className }: { items: Array<{ to: string; label: ReactNode; end?: boolean }>; className?: string }) {
   return (
-    <nav className={clsx('flex gap-1 border-b border-line', className)}>
+    <nav className={clsx('flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line scrollbar-thin', className)}>
       {items.map((item) => (
         <NavLink
           key={item.to}
@@ -58,8 +58,8 @@ export function NavTabs({ items, className }: { items: Array<{ to: string; label
           end={item.end}
           className={({ isActive }) =>
             clsx(
-              '-mb-px inline-flex h-10 items-center border-b-2 px-3 text-[13.5px] font-medium transition-colors',
-              isActive ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
+              '-mb-px inline-flex h-11 shrink-0 items-center border-b-2 px-3 text-[13.5px] font-medium whitespace-nowrap transition-colors',
+              isActive ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink',
             )
           }
         >
@@ -85,7 +85,7 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={clsx('inline-flex rounded-[var(--radius-control)] border border-line-strong bg-subtle p-0.5', className)}>
+    <div role="radiogroup" aria-label={label} className={clsx('inline-flex max-w-full overflow-x-auto rounded-[var(--radius-control)] bg-hover p-1', className)}>
       {options.map((option) => (
         <button
           key={option.value}
@@ -94,8 +94,8 @@ export function Segmented<T extends string>({
           aria-checked={option.value === value}
           onClick={() => onChange(option.value)}
           className={clsx(
-            'h-7 rounded-[6px] px-3 text-[12.5px] font-medium transition-colors',
-            option.value === value ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(23_36_56/0.08)]' : 'text-muted hover:text-ink',
+            'h-8 shrink-0 rounded-[7px] px-3 text-[12.5px] font-medium whitespace-nowrap transition-colors',
+            option.value === value ? 'bg-surface text-ink shadow-[0_1px_3px_rgb(16_24_40/0.1)]' : 'text-muted hover:text-ink',
           )}
         >
           {option.label}
