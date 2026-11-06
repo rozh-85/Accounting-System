@@ -149,6 +149,8 @@ function useCashFlow(fiscalYearStart: string | null, language: Language) {
     }
     const totals = new Map(months.map((m) => [m, { inflow: 0n, outflow: 0n }]));
     for (const line of lines.data ?? []) {
+      // Opening balances and transfers between cash accounts are not cash flows.
+      if (line.entry_type === 'opening') continue;
       if (line.counter_account_id && cashSet.has(line.counter_account_id)) continue;
       const bucket = totals.get(line.entry_date.slice(0, 7));
       if (!bucket) continue;

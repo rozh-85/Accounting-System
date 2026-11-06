@@ -28,6 +28,12 @@ export const en = {
       audit: 'Every change, by whom and when', settings: 'Company, users and layout',
     },
   },
+  demo: {
+    label: 'Demo data', hint: 'On: opens a separate demo company full of sample data. Off: deletes that company. Your real books are never touched.',
+    turnOn: 'Turn on demo data', turnOff: 'Turn off demo', onToast: 'Demo company is on. Your real books are not affected.', offToast: 'Demo data deleted.',
+    bannerTitle: 'Demo company.', bannerBody: 'Everything here is sample data. Your real books are not affected, and turning this off deletes it all.',
+    notInstalled: 'Demo data needs one database update. Run the demo SQL in Supabase first.',
+  },
   dashboard: {
     room: 'Room', subtitle: 'Fiscal year {{year}} · Current period {{period}}', noPeriod: 'No accounting period covers today',
     newReceipt: 'Receipt voucher', newPayment: 'Payment voucher',
@@ -316,6 +322,7 @@ export const en = {
     voucher: { receipt: 'Receipt Voucher', payment: 'Payment Voucher', journal: 'Journal Voucher', transfer: 'Transfer Voucher', payer: 'Paid by', receiver: 'Received by' },
   },
   errors: {
+    NOT_A_DEMO_COMPANY: 'Only a demo company can be deleted.',
     AUTH_REQUIRED: 'Your session has ended. Please sign in again.',
     PERMISSION_DENIED: 'You do not have permission to perform this action.',
     COMPANY_NOT_FOUND: 'Company not found.',
