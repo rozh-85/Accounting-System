@@ -25,7 +25,7 @@ export function Field({ label, hint, error, required, className, children }: Fie
   const id = useId();
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
-    <div className={clsx('flex flex-col gap-1.5', className)}>
+    <div className={clsx('flex min-w-0 flex-col gap-1.5', className)}>
       {label && (
         <label htmlFor={id} className="text-[12.5px] font-medium text-ink-soft">
           {label}

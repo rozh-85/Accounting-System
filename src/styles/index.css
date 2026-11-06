@@ -105,6 +105,18 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+  /* iOS Safari gives date fields a fixed minimum width and collapses them when
+     empty; without this they overflow their column on phones. */
+  input[type='date'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    max-width: 100%;
+  }
+  input[type='date']::-webkit-date-and-time-value {
+    min-height: 1.4em;
+    text-align: start;
+  }
   input[type='date']::-webkit-calendar-picker-indicator {
     opacity: 0.55;
     cursor: pointer;
