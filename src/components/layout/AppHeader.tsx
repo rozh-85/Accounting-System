@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
-import { Building2, ChevronDown, ChevronRight, FlaskConical, LayoutGrid, LogOut, Menu as MenuIcon, PanelLeftOpen, Settings } from 'lucide-react';
+import { Building2, ChevronDown, ChevronRight, FlaskConical, LogOut, Menu as MenuIcon, PanelLeftOpen, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { IconButton } from '@/components/ui/Button';
@@ -80,22 +80,7 @@ export function AppHeader({
         <Logo className="h-[22px]" />
       </Link>
 
-      {mode === 'home' && (
-        <NavLink
-          to="/"
-          end
-          title={t('nav.home')}
-          className={({ isActive }) =>
-            clsx(
-              'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-[13px] font-medium transition-colors sm:ms-1',
-              isActive ? 'border-primary bg-primary text-white shadow-[var(--shadow-primary)]' : 'border-line-strong text-ink-soft hover:bg-hover',
-            )
-          }
-        >
-          <LayoutGrid size={15} />
-          <span className="hidden sm:inline">{t('nav.home')}</span>
-        </NavLink>
-      )}
+      {mode === 'home' && <span className="ms-1 hidden h-6 w-px bg-line md:block" aria-hidden="true" />}
 
       {/* Breadcrumb */}
       <nav aria-label={t('nav.breadcrumb')} className="hidden min-w-0 items-center gap-1.5 text-[13px] md:flex md:ps-1">

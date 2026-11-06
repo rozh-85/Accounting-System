@@ -10,7 +10,7 @@ export const en = {
   nav: {
     main: 'Main navigation', workspace: 'Workspace', overview: 'Overview', rooms: 'Rooms', management: 'Management',
     accounts: 'Chart of Accounts', vouchers: 'Vouchers', reports: 'Reports', periods: 'Accounting Periods', audit: 'Audit Log',
-    settings: 'Settings', home: 'Home', openMenu: 'Open navigation', closeMenu: 'Close navigation', menu: 'Menu',
+    settings: 'Settings', home: 'Home', allRooms: 'All rooms', openMenu: 'Open navigation', closeMenu: 'Close navigation', menu: 'Menu',
     search: 'Search menu', noResults: 'No matching pages', collapse: 'Collapse sidebar', expand: 'Expand sidebar', breadcrumb: 'Breadcrumb', newCompany: 'Create another company',
   },
   header: { period: 'Period', currentPeriod: 'Current accounting period', switchTo: 'Switch to {{name}}' },
@@ -261,7 +261,7 @@ export const en = {
     layout: {
       title: 'Navigation layout', hint: 'Choose how you move between rooms. Your choice is saved for your account on this device.',
       sidebar: 'Sidebar', sidebarHint: 'Rooms and pages stay listed on the side of every screen.',
-      home: 'Home screen', homeHint: 'A home screen of room tiles. Open a room, then return with the Home button.',
+      home: 'Home screen', homeHint: 'A home screen of room tiles. Open a room, then return with the All rooms link.',
     },
     company: {
       title: 'Company profile', hint: 'Shown in the header and on every report.', nameEn: 'Name (English)', nameAr: 'Name (Arabic)',

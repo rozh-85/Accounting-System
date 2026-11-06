@@ -1,6 +1,8 @@
 import { clsx } from 'clsx';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Link, Outlet, useLocation } from 'react-router';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useNavigationMode } from '@/features/dashboard/navigation';
@@ -14,6 +16,19 @@ function readCollapsed() {
   } catch {
     return false;
   }
+}
+
+/** Home-screen layout has no sidebar: every page leads back to the rooms. */
+function BackToRooms() {
+  const { t } = useTranslation();
+  return (
+    <Link to="/" className="group mb-4 inline-flex items-center gap-2.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface shadow-[var(--shadow-xs)] transition-colors group-hover:bg-hover">
+        <ArrowLeft size={16} className="rtl:-scale-x-100" aria-hidden="true" />
+      </span>
+      {t('nav.allRooms')}
+    </Link>
+  );
 }
 
 export function AppLayout() {
@@ -74,6 +89,7 @@ export function AppLayout() {
         <AppHeader mode={mode} onOpenNavigation={() => setNavOpen(true)} sidebarCollapsed={collapsed} onExpandSidebar={() => setCollapsed(false)} />
         <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto w-full max-w-[1440px]">
+            {!withSidebar && pathname !== '/' && <BackToRooms />}
             <DemoBanner />
             <Outlet />
           </div>
