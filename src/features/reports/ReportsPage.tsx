@@ -15,6 +15,7 @@ const REPORTS: ReportItem[] = [
   { key: 'journal', icon: NotebookPen, to: '/journal', format: 'portrait' },
   { key: 'entry', icon: FileText, to: '/journal', format: 'portrait' },
   { key: 'voucher', icon: ReceiptText, to: '/journal/vouchers', format: 'portrait' },
+  { key: 'voucherRegister', icon: ReceiptText, to: '/journal/vouchers', format: 'portrait' },
   { key: 'ledger', icon: BookText, to: '/ledger?view=gl', format: 'portrait' },
   { key: 'tAccount', icon: BookText, to: '/ledger', format: 'portrait' },
   { key: 'trialBalance', icon: Scale, to: '/trial-balance', format: 'landscape' },

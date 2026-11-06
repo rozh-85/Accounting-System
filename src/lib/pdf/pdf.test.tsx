@@ -30,7 +30,9 @@ import {
   TAccountReport,
   TrialBalanceReport,
   VoucherDocument,
+  VoucherRegisterReport,
   type JournalReportLine,
+  type VoucherRegisterRow,
 } from './index';
 
 const root = join(__dirname, '..', '..', '..');
@@ -183,7 +185,37 @@ beforeAll(() => {
 
 const iqd = { code: 'IQD', name_en: 'Iraqi Dinar', name_ar: 'دينار عراقي', decimals: 0 };
 
+const voucherRows: VoucherRegisterRow[] = Array.from({ length: 70 }, (_, i) => ({
+  id: `v-${i}`,
+  voucher_type: (['receipt', 'payment', 'journal', 'transfer'] as const)[i % 4],
+  voucher_number: `RV-2026-${String(i + 1).padStart(5, '0')}`,
+  voucher_date: `2026-${String((i % 12) + 1).padStart(2, '0')}-15`,
+  status: i % 9 === 8 ? 'reversed' : 'posted',
+  party_name: i % 2 === 0 ? 'شركة النور للتجارة' : 'Al-Noor Trading Co.',
+  amount: 1_250_000 + i * 10_000,
+  description: 'تسديد قيمة البضاعة المشتراة حسب الفاتورة — settlement of invoice',
+  reference_number: null,
+  journal_entry_number: `JE-2026-${String(i + 1).padStart(5, '0')}`,
+}));
+
 describe.each(['ar', 'en'] as const)('PDF reports (%s)', (language) => {
+  it('voucher register spans multiple pages with totals by type', async () => {
+    const fixed = i18n.getFixedT(language);
+    const r = await render(`voucher-register-${language}`, (
+      <VoucherRegisterReport context={context(language)} decimals={0} currencyCode="IQD" from="2026-01-01" to="2026-12-31" typeLabel={fixed('common.all')} statusLabel={fixed('status.posted')} vouchers={voucherRows} signatures />
+    ));
+    expect(r.pages).toBeGreaterThan(1);
+    expect(r.text).toContain('/FontFile');
+  });
+
+  it('voucher register with no vouchers', async () => {
+    const fixed = i18n.getFixedT(language);
+    const r = await render(`voucher-register-empty-${language}`, (
+      <VoucherRegisterReport context={context(language)} decimals={0} currencyCode="IQD" from={null} to={null} typeLabel={fixed('common.all')} statusLabel={fixed('status.posted')} vouchers={[]} signatures={false} />
+    ));
+    expect(r.pages).toBe(1);
+  });
+
   it('daily journal report spans multiple pages with repeated headers and grand totals', async () => {
     const r = await render(`journal-${language}`, (
       <JournalReport context={context(language)} decimals={0} currencyCode="IQD" from="2026-01-01" to="2026-12-31" statusLabel={i18n.getFixedT(language)('status.posted')} lines={journalLines} signatures />

@@ -24,7 +24,7 @@ export const en = {
     descriptions: {
       overview: 'Key figures and work queue', journal: 'Entries, vouchers and approvals', ledger: 'T-accounts and account movements',
       trialBalance: 'Debit and credit balances', financialPosition: 'Assets, liabilities and equity', accounts: 'Account tree and categories',
-      vouchers: 'Receipts, payments and transfers', reports: 'PDF reports in Arabic and English', periods: 'Fiscal years and period closing',
+      reports: 'PDF reports in Arabic and English', periods: 'Fiscal years and period closing',
       audit: 'Every change, by whom and when', settings: 'Company, users and layout',
     },
   },
@@ -242,6 +242,7 @@ export const en = {
       journal: { title: 'Daily Journal Report', description: 'Entries in a date range with accounts, amounts, voucher references and grand totals.', action: 'Open journal' },
       entry: { title: 'Journal Entry', description: 'A single entry with its lines, approvals and signature fields. Print from the entry page.', action: 'Open journal' },
       voucher: { title: 'Voucher Documents', description: 'Receipt, payment, journal and transfer vouchers with amount in words and signatures.', action: 'Open vouchers' },
+      voucherRegister: { title: 'Voucher Register', description: 'All vouchers in a date range by type and status, with totals and net receipts less payments.', action: 'Open vouchers' },
       ledger: { title: 'General Ledger Statement', description: 'Account statement with opening balance, movements, running balance and ending balance.', action: 'Open ledger' },
       tAccount: { title: 'T-Account', description: 'Visual T-account with debit on the left, credit on the right and the balance.', action: 'Open ledger' },
       trialBalance: { title: 'Trial Balance', description: 'Summary or detailed trial balance with balance validation.', action: 'Open trial balance' },
@@ -295,6 +296,14 @@ export const en = {
     entries: 'Entries', currency: 'Currency', grandTotal: 'Grand total', noData: 'No data for the selected parameters.', allDates: 'All dates',
     taxNumber: 'Tax no.', preparedBy: 'Prepared by', reviewedBy: 'Reviewed by', approvedBy: 'Approved by', accountant: 'Accountant', manager: 'Manager',
     name: 'Name', date: 'Date',
+    voucherRegister: {
+      title: 'Voucher Register', count: 'Vouchers', partyAndStatement: 'Party / statement', net: 'Net: receipts less payments',
+      note: 'Reversed vouchers are listed but excluded from the totals. Each posted voucher is linked to its journal entry.',
+      totals: {
+        receipt: 'Total receipt vouchers ({{n}})', payment: 'Total payment vouchers ({{n}})',
+        journal: 'Total journal vouchers ({{n}})', transfer: 'Total transfer vouchers ({{n}})',
+      },
+    },
     journal: {
       title: 'Daily Journal Report', accountAndStatement: 'Account / statement', balanced: 'Total debits equal total credits.',
       unbalanced: 'Total debits differ from total credits by {{difference}}.', note: 'Amounts are drawn from the journal entries matching the selected status.',

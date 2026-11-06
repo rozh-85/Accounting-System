@@ -18,9 +18,9 @@ function initials(name: string) {
 }
 
 /** Page names for the breadcrumb, most specific path first. */
-const PAGE_TITLES: Array<[string, string]> = [
-  ['/journal/vouchers', 'nav.vouchers'],
-  ['/journal/recurring', 'rooms.journal.title'],
+const PAGE_TITLES: Array<[prefix: string, title: string, inJournalRoom?: boolean]> = [
+  ['/journal/vouchers', 'journal.tabs.vouchers', true],
+  ['/journal/recurring', 'journal.tabs.recurring', true],
   ['/journal', 'rooms.journal.title'],
   ['/ledger', 'rooms.ledger.title'],
   ['/trial-balance', 'rooms.trialBalance.title'],
@@ -54,7 +54,8 @@ export function AppHeader({
   const period = summary.data?.current_period;
   const displayName = profile?.full_name || user?.email || '';
 
-  const pageKey = PAGE_TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1] ?? (mode === 'home' ? 'nav.home' : 'nav.overview');
+  const page = PAGE_TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const pageKey = page?.[1] ?? (mode === 'home' ? 'nav.home' : 'nav.overview');
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line bg-surface/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:gap-3 sm:px-6">
@@ -97,6 +98,14 @@ export function AppHeader({
       <nav aria-label={t('nav.breadcrumb')} className="hidden min-w-0 items-center gap-1.5 text-[13px] md:flex md:ps-1">
         <span className="truncate text-muted">{name(company)}</span>
         <ChevronRight size={14} className="shrink-0 text-faint rtl:-scale-x-100" aria-hidden="true" />
+        {page?.[2] && (
+          <>
+            <Link to="/journal" className="truncate text-muted hover:text-ink">
+              {t('rooms.journal.title')}
+            </Link>
+            <ChevronRight size={14} className="shrink-0 text-faint rtl:-scale-x-100" aria-hidden="true" />
+          </>
+        )}
         <span className="truncate font-medium text-ink">{t(pageKey)}</span>
       </nav>
 

@@ -1,4 +1,4 @@
-import { FileSpreadsheet, Plus, Search, X } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -12,13 +12,15 @@ import { Menu } from '@/components/ui/Menu';
 import { PageLoader } from '@/components/ui/Spinner';
 import { Segmented } from '@/components/ui/Tabs';
 import { useToast } from '@/components/ui/Toast';
+import { useReportIdentity } from '@/hooks/useReportIdentity';
 import { downloadCsv } from '@/lib/csv';
 import { formatAmount, formatDate } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import type { VoucherStatus, VoucherType } from '@/lib/accounting';
 import type { VoucherListRow } from '@/types/database';
-import { voucherSearchArgs, useVouchers, type VoucherFilters } from './api';
+import { ReportDialog } from '@/features/reports/ReportDialog';
+import { fetchVouchersForReport, voucherSearchArgs, useVouchers, type VoucherFilters } from './api';
 
 const PAGE_SIZE = 25;
 export const VOUCHER_TYPE_LIST: VoucherType[] = ['receipt', 'payment', 'journal', 'transfer'];
@@ -42,6 +44,8 @@ export function VouchersListPage() {
   );
   const page = Number(params.get('page') ?? 0);
   const [searchText, setSearchText] = useState(filters.search);
+  const [reportOpen, setReportOpen] = useState(false);
+  const identity = useReportIdentity();
   const list = useVouchers(filters, page, PAGE_SIZE);
   const rows = list.data ?? [];
   const total = Number(rows[0]?.total_count ?? 0);
@@ -58,6 +62,8 @@ export function VouchersListPage() {
     setParams(p, { replace: true });
   };
   const hasFilters = Boolean(filters.search || filters.from || filters.to || filters.type || filters.status);
+  // Like the daily journal report: posted documents unless a status is chosen.
+  const reportStatuses: VoucherStatus[] = filters.status ? [filters.status] : ['posted', 'reversed'];
 
   const exportCsv = async () => {
     try {
@@ -85,6 +91,11 @@ export function VouchersListPage() {
           <Button icon={<FileSpreadsheet size={15} />} onClick={() => void exportCsv()}>
             {t('common.exportCsv')}
           </Button>
+          {can('reports.export') && (
+            <Button icon={<FileDown size={15} />} onClick={() => setReportOpen(true)}>
+              {t('common.exportPdf')}
+            </Button>
+          )}
           {can('entries.create') && (
             <Menu
               trigger={(props) => (
@@ -189,6 +200,31 @@ export function VouchersListPage() {
           </>
         )}
       </Card>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        title={t('pdf.voucherRegister.title')}
+        fileName="voucher-register"
+        defaultSignatures={identity.signatures}
+        generate={async ({ language, signatures }) => {
+          const vouchers = await fetchVouchersForReport(companyId, filters, reportStatuses);
+          const pdf = await import('@/lib/pdf');
+          return pdf.renderToBlob(
+            <pdf.VoucherRegisterReport
+              context={pdf.reportContext(language, identity.company, identity.generatedBy)}
+              decimals={currency.decimals}
+              currencyCode={currency.code}
+              from={filters.from || null}
+              to={filters.to || null}
+              typeLabel={filters.type ? t(`voucherTypes.${filters.type}`, { lng: language }) : t('common.all', { lng: language })}
+              statusLabel={reportStatuses.map((s) => t(`status.${s}`, { lng: language })).join(', ')}
+              vouchers={vouchers}
+              signatures={signatures}
+            />,
+          );
+        }}
+      />
     </>
   );
 }

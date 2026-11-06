@@ -10,7 +10,7 @@ All four rooms read and write one ledger in one PostgreSQL database; every repor
 | 03 | Trial Balance | ميزان المراجعة |
 | 04 | Statement of Financial Position | قائمة المركز المالي |
 
-Supporting modules: Chart of Accounts (دليل الحسابات), Vouchers (سندات القبض والصرف والقيد والتحويل), Accounting Periods, Reports, Audit Log, Settings (company, accounting controls, users and roles).
+Supporting modules: Chart of Accounts (دليل الحسابات), Accounting Periods, Reports, Audit Log, Settings (company, accounting controls, users and roles).
 
 ---
 
@@ -33,7 +33,7 @@ Supporting modules: Chart of Accounts (دليل الحسابات), Vouchers (س�
 
 **Financial Position (Room 4)** — assets, liabilities and equity as of any date from the chart's classifications; contra accounts shown in brackets; current-period profit or loss and unclosed prior results in equity without double counting closed income; comparative column; Assets = Liabilities + Equity check.
 
-**PDF reporting engine** — A4 portrait/landscape reports in Arabic or English with embedded IBM Plex fonts (proper Arabic shaping and RTL), company letterhead, repeated table headers, page numbers, timestamps and optional signature fields: daily journal, journal entry, vouchers (with amount in words), ledger statement, T-account, trial balance and statement of financial position.
+**PDF reporting engine** — A4 portrait/landscape reports in Arabic or English with embedded IBM Plex fonts (proper Arabic shaping and RTL), company letterhead, repeated table headers, page numbers, timestamps and optional signature fields: daily journal, journal entry, vouchers (with amount in words), voucher register, ledger statement, T-account, trial balance and statement of financial position.
 
 ---
 

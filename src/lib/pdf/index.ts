@@ -13,6 +13,7 @@ export * from './reports/journalReport';
 export * from './reports/ledgerReport';
 export * from './reports/statementReports';
 export * from './reports/documentReports';
+export * from './reports/voucherRegisterReport';
 export type { ReportCompany, ReportContextValue, PdfLanguage } from './primitives';
 
 export function reportContext(language: PdfLanguage, company: ReportCompany, generatedBy?: string | null): ReportContextValue {

@@ -1,10 +1,23 @@
 import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router';
 import { NavTabs } from '@/components/ui/Tabs';
+import { useDashboardSummary } from '@/hooks/useReferenceData';
+
+function TabLabel({ label, count }: { label: string; count?: number }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      {label}
+      {count ? (
+        <span className="num inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning-soft px-1.5 text-[11px] font-semibold text-warning">{count}</span>
+      ) : null}
+    </span>
+  );
+}
 
 /** Room 1 — Daily Journal: entries, vouchers and recurring templates. */
 export function JournalRoomLayout() {
   const { t } = useTranslation();
+  const summary = useDashboardSummary().data;
   return (
     <>
       <div className="mb-5">
@@ -15,8 +28,8 @@ export function JournalRoomLayout() {
       <NavTabs
         className="mb-5"
         items={[
-          { to: '/journal', label: t('journal.tabs.entries'), end: true },
-          { to: '/journal/vouchers', label: t('journal.tabs.vouchers') },
+          { to: '/journal', label: <TabLabel label={t('journal.tabs.entries')} count={summary?.entries.pending_approval} />, end: true },
+          { to: '/journal/vouchers', label: <TabLabel label={t('journal.tabs.vouchers')} count={summary?.vouchers.pending_approval} /> },
           { to: '/journal/recurring', label: t('journal.tabs.recurring') },
         ]}
       />

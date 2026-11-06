@@ -46,8 +46,7 @@ export function HomePage() {
   const today = todayIso();
 
   const counts: Partial<Record<DestinationKey, number>> = {
-    journal: data?.entries.pending_approval,
-    vouchers: data?.vouchers.pending_approval,
+    journal: data ? data.entries.pending_approval + data.vouchers.pending_approval : undefined,
   };
 
   return (

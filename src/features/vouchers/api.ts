@@ -27,6 +27,17 @@ export function voucherSearchArgs(companyId: string, f: VoucherFilters, limit: n
   };
 }
 
+/** Every voucher matching the filters, for reports (the search returns at most 1000 per call). */
+export async function fetchVouchersForReport(companyId: string, filters: VoucherFilters, statuses: VoucherStatus[]) {
+  const pageSize = 1000;
+  const rows: VoucherListRow[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const batch = await rpc<VoucherListRow[]>('search_vouchers', { ...voucherSearchArgs(companyId, filters, pageSize, offset), p_statuses: statuses });
+    rows.push(...batch);
+    if (batch.length < pageSize) return rows;
+  }
+}
+
 export function useVouchers(filters: VoucherFilters, page: number, pageSize: number) {
   const { companyId } = useCompany();
   return useQuery({

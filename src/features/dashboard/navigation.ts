@@ -1,4 +1,4 @@
-import { CalendarRange, FileText, Gauge, History, ListTree, ReceiptText, Settings, type LucideIcon } from 'lucide-react';
+import { CalendarRange, FileText, Gauge, History, ListTree, Settings, type LucideIcon } from 'lucide-react';
 import { useCallback, useSyncExternalStore } from 'react';
 import { useAuth } from '@/app/providers/AuthProvider';
 import type { Permission } from '@/types/database';
@@ -14,7 +14,6 @@ export type DestinationKey =
   | 'trialBalance'
   | 'financialPosition'
   | 'accounts'
-  | 'vouchers'
   | 'reports'
   | 'periods'
   | 'audit'
@@ -62,7 +61,6 @@ export const DESTINATION_GROUPS: DestinationGroup[] = [
     bar: COLORS.orange.bar,
     items: [
       { key: 'accounts', titleKey: 'nav.accounts', path: '/accounts', icon: ListTree, color: COLORS.orange },
-      { key: 'vouchers', titleKey: 'nav.vouchers', path: '/journal/vouchers', icon: ReceiptText, color: COLORS.amber },
       { key: 'reports', titleKey: 'nav.reports', path: '/reports', icon: FileText, color: COLORS.blue },
       { key: 'periods', titleKey: 'nav.periods', path: '/periods', icon: CalendarRange, color: COLORS.teal },
       { key: 'audit', titleKey: 'nav.audit', path: '/audit', icon: History, color: COLORS.slate, permission: 'audit.view' },

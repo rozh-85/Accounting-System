@@ -10,10 +10,8 @@ import {
   LogOut,
   NotebookPen,
   PanelLeftClose,
-  ReceiptText,
   Scale,
   Search,
-  Settings,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -36,6 +34,8 @@ interface NavItem {
   end?: boolean;
   badge?: number;
   permission?: Permission;
+  /** i18n keys the menu search also matches, in both languages. */
+  searchKeys: string[];
 }
 
 function initials(text: string) {
@@ -120,28 +120,39 @@ export function Sidebar({
   }, [shortcut, collapsed]);
 
   const groups = useMemo(() => {
-    const pending = summary.data;
+    const data = summary.data;
+    const item = (key: string, to: string, labelKey: string, icon: LucideIcon, extra: Partial<NavItem> = {}): NavItem => ({
+      key,
+      to,
+      icon,
+      label: t(labelKey),
+      searchKeys: [labelKey],
+      ...extra,
+    });
     const all: Array<{ key: string; label: string; items: NavItem[] }> = [
       {
         key: 'menu',
         label: t('nav.menu'),
         items: [
-          { key: 'overview', to: '/', end: true, label: t('nav.overview'), icon: LayoutDashboard },
-          { key: 'journal', to: '/journal', label: t('rooms.journal.title'), icon: NotebookPen, badge: pending?.entries.pending_approval },
-          { key: 'ledger', to: '/ledger', label: t('rooms.ledger.title'), icon: BookText },
-          { key: 'trialBalance', to: '/trial-balance', label: t('rooms.trialBalance.title'), icon: Scale },
-          { key: 'financialPosition', to: '/financial-position', label: t('rooms.financialPosition.title'), icon: Landmark },
+          item('overview', '/', 'nav.overview', LayoutDashboard, { end: true }),
+          // Vouchers and recurring entries are tabs of the Daily Journal room.
+          item('journal', '/journal', 'rooms.journal.title', NotebookPen, {
+            badge: data ? data.entries.pending_approval + data.vouchers.pending_approval : undefined,
+            searchKeys: ['rooms.journal.title', 'journal.tabs.vouchers', 'journal.tabs.recurring'],
+          }),
+          item('ledger', '/ledger', 'rooms.ledger.title', BookText),
+          item('trialBalance', '/trial-balance', 'rooms.trialBalance.title', Scale),
+          item('financialPosition', '/financial-position', 'rooms.financialPosition.title', Landmark),
         ],
       },
       {
         key: 'management',
         label: t('nav.management'),
         items: [
-          { key: 'accounts', to: '/accounts', label: t('nav.accounts'), icon: ListTree },
-          { key: 'vouchers', to: '/journal/vouchers', label: t('nav.vouchers'), icon: ReceiptText, badge: pending?.vouchers.pending_approval },
-          { key: 'reports', to: '/reports', label: t('nav.reports'), icon: FileText },
-          { key: 'periods', to: '/periods', label: t('nav.periods'), icon: CalendarRange },
-          { key: 'audit', to: '/audit', label: t('nav.audit'), icon: History, permission: 'audit.view' },
+          item('accounts', '/accounts', 'nav.accounts', ListTree),
+          item('reports', '/reports', 'nav.reports', FileText),
+          item('periods', '/periods', 'nav.periods', CalendarRange),
+          item('audit', '/audit', 'nav.audit', History, { permission: 'audit.view' }),
         ],
       },
     ];
@@ -149,11 +160,10 @@ export function Sidebar({
     return all
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) => {
-          if (item.permission && !can(item.permission)) return false;
+        items: group.items.filter((entry) => {
+          if (entry.permission && !can(entry.permission)) return false;
           if (!q) return true;
-          const otherLabel = item.key === 'overview' ? t('nav.overview', { lng: other }) : '';
-          return item.label.toLowerCase().includes(q) || otherLabel.toLowerCase().includes(q);
+          return entry.searchKeys.some((key) => t(key).toLowerCase().includes(q) || t(key, { lng: other }).toLowerCase().includes(q));
         }),
       }))
       .filter((group) => group.items.length > 0);
@@ -231,7 +241,6 @@ export function Sidebar({
 
       {/* Footer */}
       <div className={clsx('flex flex-col gap-1 border-t border-line py-3', collapsed ? 'px-3' : 'px-4')}>
-        <Item item={{ key: 'settings', to: '/settings', label: t('nav.settings'), icon: Settings }} collapsed={collapsed} />
         <button
           type="button"
           title={collapsed ? t('auth.signOut') : undefined}
