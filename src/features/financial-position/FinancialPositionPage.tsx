@@ -194,9 +194,28 @@ export function FinancialPositionPage() {
   const totalRow = (label: string, current: Units | undefined, previous: Units | undefined): ReactNode => (
     <tr className="bg-subtle">
       <td className="border-y-2 border-ink px-5 py-3 font-semibold">{label}</td>
-      <td className="num border-y-2 border-ink px-4 py-3 text-end font-semibold">{fmt(current)}</td>
-      {comparative && <td className="num border-y-2 border-ink px-4 py-3 pe-6 text-end font-semibold">{fmt(previous)}</td>}
+      <td className="num w-[170px] border-y-2 border-ink px-4 py-3 text-end font-semibold">{fmt(current)}</td>
+      {comparative && <td className="num w-[170px] border-y-2 border-ink px-4 py-3 pe-6 text-end font-semibold">{fmt(previous)}</td>}
     </tr>
+  );
+
+  const sideDivider = 'min-[1700px]:border-s min-[1700px]:border-line';
+  // header: 'wide' repeats it only for the second side of the two-sided layout.
+  const statementTable = (rows: ReactNode, header: 'block' | 'wide' | 'none', className?: string) => (
+    <div className={clsx('min-w-0 overflow-x-auto scrollbar-thin', className)}>
+      <table className="w-full min-w-[620px] border-collapse text-[13.5px]">
+        {header !== 'none' && (
+          <thead className={header === 'wide' ? 'hidden min-[1700px]:table-header-group' : undefined}>
+            <tr className="text-[12px] text-muted">
+              <th className="h-10 border-b border-line px-5 text-start font-medium">{t('financialPosition.item')}</th>
+              <th className="num h-10 w-[170px] border-b border-line px-4 text-end font-medium">{formatDate(asOf)}</th>
+              {comparative && <th className="num h-10 w-[170px] border-b border-line px-4 pe-6 text-end font-medium">{formatDate(comparativeDate)}</th>}
+            </tr>
+          </thead>
+        )}
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
   );
 
   const tot = statement?.totals;
@@ -277,20 +296,19 @@ export function FinancialPositionPage() {
               <p className="mt-0.5 text-[13px] text-ink-soft">{t('financialPosition.asOfLong', { date: formatDate(asOf) })}</p>
               <p className="mt-0.5 text-[12px] text-muted">{t('financialPosition.amountsIn', { currency: currency.code })}</p>
             </div>
-            <div className="overflow-x-auto scrollbar-thin">
-              <table className="w-full min-w-[620px] border-collapse text-[13.5px]">
-                <thead>
-                  <tr className="text-[12px] text-muted">
-                    <th className="h-10 border-b border-line px-5 text-start font-medium">{t('financialPosition.item')}</th>
-                    <th className="num h-10 w-[170px] border-b border-line px-4 text-end font-medium">{formatDate(asOf)}</th>
-                    {comparative && <th className="num h-10 w-[170px] border-b border-line px-4 pe-6 text-end font-medium">{formatDate(comparativeDate)}</th>}
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Two-sided balance sheet on wide screens, so a label and its amount stay close. */}
+            <div className="grid grid-cols-1 min-[1700px]:grid-flow-col min-[1700px]:grid-cols-2 min-[1700px]:grid-rows-[1fr_auto]">
+              {statementTable(
+                <>
                   {headingRow(t('financialPosition.assets'))}
                   {sectionRows('current_assets')}
                   {sectionRows('non_current_assets')}
-                  {totalRow(t('financialPosition.totalAssets'), tot.totalAssets, ctot?.totalAssets)}
+                </>,
+                'block',
+              )}
+              {statementTable(totalRow(t('financialPosition.totalAssets'), tot.totalAssets, ctot?.totalAssets), 'none')}
+              {statementTable(
+                <>
                   {headingRow(t('financialPosition.liabilities'))}
                   {sectionRows('current_liabilities')}
                   {sectionRows('non_current_liabilities')}
@@ -300,9 +318,11 @@ export function FinancialPositionPage() {
                   </tr>
                   {headingRow(t('financialPosition.equity'))}
                   {sectionRows('equity')}
-                  {totalRow(t('financialPosition.totalLiabilitiesEquity'), tot.liabilitiesAndEquity, ctot?.liabilitiesAndEquity)}
-                </tbody>
-              </table>
+                </>,
+                'wide',
+                sideDivider,
+              )}
+              {statementTable(totalRow(t('financialPosition.totalLiabilitiesEquity'), tot.liabilitiesAndEquity, ctot?.liabilitiesAndEquity), 'none', sideDivider)}
             </div>
             <div className={clsx('flex flex-wrap items-center gap-x-6 gap-y-2 border-t px-5 py-4 text-[13px]', statement.isBalanced ? 'border-success-line bg-success-soft' : 'border-danger-line bg-danger-soft')}>
               <span className={clsx('flex items-center gap-2 font-semibold', statement.isBalanced ? 'text-success-strong' : 'text-danger')}>

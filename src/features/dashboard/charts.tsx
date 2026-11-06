@@ -49,8 +49,9 @@ export interface LinePoint {
  * Multi-series line chart with a shared y-axis, crosshair tooltip and an
  * accessible data table. Always laid out left-to-right (time axis).
  */
-export function LineChart({ series, points, height = 260, valueLabel }: { series: SeriesDefinition[]; points: LinePoint[]; height?: number; valueLabel?: string }) {
+export function LineChart({ series, points, valueLabel }: { series: SeriesDefinition[]; points: LinePoint[]; valueLabel?: string }) {
   const [ref, width] = useWidth<HTMLDivElement>(640);
+  const height = Math.round(Math.min(380, Math.max(260, width * 0.27)));
   const [hover, setHover] = useState<number | null>(null);
 
   const pad = { top: 12, right: 14, bottom: 30, left: 52 };

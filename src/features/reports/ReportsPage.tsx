@@ -29,7 +29,7 @@ export function ReportsPage() {
   return (
     <>
       <PageHeader title={t('reports.title')} subtitle={t('reports.subtitle')} />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 min-[1900px]:grid-cols-4">
         {REPORTS.map((report) => (
           <Card key={report.key} className="flex flex-col p-5">
             <div className="flex items-start gap-3">

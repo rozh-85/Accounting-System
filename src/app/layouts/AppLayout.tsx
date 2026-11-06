@@ -1,6 +1,6 @@
 import { clsx } from 'clsx';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -51,7 +51,7 @@ export function AppLayout() {
   useEffect(() => setNavOpen(false), [pathname]);
 
   return (
-    <div className="min-h-dvh bg-canvas">
+    <div className="min-h-dvh bg-canvas" style={{ '--sidebar-width': !withSidebar ? '0px' : collapsed ? '84px' : '272px' } as CSSProperties}>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>
@@ -88,7 +88,7 @@ export function AppLayout() {
       <div className={clsx('flex min-h-dvh flex-col transition-[padding] duration-200', withSidebar && (collapsed ? 'lg:ps-[84px]' : 'lg:ps-[272px]'))}>
         <AppHeader mode={mode} onOpenNavigation={() => setNavOpen(true)} sidebarCollapsed={collapsed} onExpandSidebar={() => setCollapsed(false)} />
         <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto w-full max-w-[1440px]">
+          <div className="mx-auto w-full max-w-[2800px]">
             {!withSidebar && pathname !== '/' && <BackToRooms />}
             <DemoBanner />
             <Outlet />

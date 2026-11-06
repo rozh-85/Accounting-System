@@ -6,7 +6,7 @@ import { IconButton } from '@/components/ui/Button';
 
 export function Table({ className, children, minWidth }: { className?: string; children: ReactNode; minWidth?: number }) {
   return (
-    <div className={clsx('overflow-x-auto scrollbar-thin', className)}>
+    <div className={clsx('relative overflow-x-auto scrollbar-thin', className)}>
       <table className="w-full border-collapse text-[13px]" style={minWidth ? { minWidth } : undefined}>
         {children}
       </table>

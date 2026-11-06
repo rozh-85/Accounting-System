@@ -374,8 +374,8 @@ export function VoucherFormPage() {
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur lg:ps-[232px]">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur lg:ps-[var(--sidebar-width)]">
+        <div className="mx-auto flex max-w-[2800px] flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 lg:px-8">
           <ButtonLink to={editing ? `/journal/vouchers/${id}` : '/journal/vouchers'} variant="ghost">{t('common.cancel')}</ButtonLink>
           <Button onClick={() => void submit('draft')} loading={busyIntent === 'draft'} disabled={Boolean(busyIntent)}>{t('journal.saveDraft')}</Button>
           {can('entries.submit') && (requireApproval || !canPostDirectly) && (

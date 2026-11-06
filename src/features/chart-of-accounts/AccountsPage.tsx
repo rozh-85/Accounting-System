@@ -311,7 +311,7 @@ export function AccountsPage() {
         ) : rows.length === 0 ? (
           <EmptyState title={t('accounts.empty')} />
         ) : (
-          <div className="overflow-x-auto scrollbar-thin">
+          <div className="relative overflow-x-auto scrollbar-thin">
             <table className="w-full min-w-[980px] border-collapse text-[13px]">
               <thead className="bg-subtle text-[12px] text-muted">
                 <tr>

@@ -81,7 +81,7 @@ function CompanyTab() {
         )
       }
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 min-[1900px]:grid-cols-4">
         {fields.map((f) => (
           <Field key={f.key} label={f.label} required={f.key === 'name_en' || f.key === 'name_ar'}>
             {(p) => <Input {...p} dir={f.dir} className={f.dir === 'rtl' ? 'font-ar' : undefined} disabled={!editable} {...form.register(f.key)} />}

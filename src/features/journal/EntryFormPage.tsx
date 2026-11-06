@@ -467,8 +467,8 @@ export function EntryFormPage() {
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur lg:ps-[232px]">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur lg:ps-[var(--sidebar-width)]">
+        <div className="mx-auto flex max-w-[2800px] flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 lg:px-8">
           <span className="me-auto hidden text-[12.5px] text-muted md:block">
             {summary.isBalanced ? t('journal.readyToPost') : t('journal.postingDisabledUnbalanced')}
           </span>
