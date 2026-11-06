@@ -21,11 +21,11 @@ let hyphenationRegistered = false;
 function registerFamilies(base: string, ar: string, en: string) {
   Font.register({
     family: ar,
-    fonts: WEIGHTS.map(([name, fontWeight]) => ({ src: `${base}IBMPlexSansArabic-${name}.woff`, fontWeight })),
+    fonts: WEIGHTS.map(([name, fontWeight]) => ({ src: `${base}IBMPlexSansArabic-${name}.ttf`, fontWeight })),
   });
   Font.register({
     family: en,
-    fonts: WEIGHTS.map(([name, fontWeight]) => ({ src: `${base}IBMPlexSans-${name}.woff`, fontWeight })),
+    fonts: WEIGHTS.map(([name, fontWeight]) => ({ src: `${base}IBMPlexSans-${name}.ttf`, fontWeight })),
   });
   if (!hyphenationRegistered) {
     // Never hyphenate account names, codes or amounts.
@@ -46,7 +46,10 @@ function registerFamilies(base: string, ar: string, en: string) {
  * Arabic ligature mapping (a dropped alef before lam-alef). The font files stay
  * in the browser's HTTP cache, so this only costs re-parsing.
  *
- * @param base URL or filesystem directory containing the .woff files.
+ * The fonts ship as plain TTF rather than WOFF on purpose: fontkit decompresses
+ * WOFF in JavaScript, which took seconds per report.
+ *
+ * @param base URL or filesystem directory containing the .ttf files.
  */
 export function registerPdfFonts(base = '/fonts/pdf/'): PdfFontFamilies {
   generation += 1;

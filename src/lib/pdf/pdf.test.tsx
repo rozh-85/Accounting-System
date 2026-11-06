@@ -199,6 +199,22 @@ const voucherRows: VoucherRegisterRow[] = Array.from({ length: 70 }, (_, i) => (
 }));
 
 describe.each(['ar', 'en'] as const)('PDF reports (%s)', (language) => {
+  it('long reports keep their line height across pages (react-pdf patch)', async () => {
+    // Without scripts/patch-react-pdf.mjs, line height compounds at every page
+    // break: rows swell, the page count doubles, and past page 12 rendering fails.
+    const copies = Math.ceil(420 / journalLines.length);
+    const lines = Array.from({ length: copies }, (_, copy) =>
+      journalLines.map((l) => ({ ...l, entry_id: `${l.entry_id}-${copy}`, entry_number: `${l.entry_number}-${copy}` })),
+    ).flat();
+    const rowsPerPage = 16;
+    const entries = new Set(lines.map((l) => l.entry_id)).size;
+    const r = await render(`journal-long-${language}`, (
+      <JournalReport context={context(language)} decimals={0} currencyCode="IQD" from="2026-01-01" to="2026-12-31" statusLabel={i18n.getFixedT(language)('status.posted')} lines={lines} signatures={false} />
+    ));
+    expect(r.pages).toBeGreaterThan(12);
+    expect(r.pages).toBeLessThan((lines.length + entries) / rowsPerPage + 3);
+  }, 120_000);
+
   it('voucher register spans multiple pages with totals by type', async () => {
     const fixed = i18n.getFixedT(language);
     const r = await render(`voucher-register-${language}`, (

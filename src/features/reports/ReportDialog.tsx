@@ -59,6 +59,7 @@ export function ReportDialog({
           return URL.createObjectURL(blob);
         });
       } catch (e) {
+        console.error('Report generation failed', e);
         if (request === requestRef.current) setError(errorMessage(e, t));
       } finally {
         if (request === requestRef.current) setLoading(false);

@@ -14,7 +14,8 @@
     "test:db": "vitest run supabase/tests",
     "test:pdf": "vitest run src/lib/pdf",
     "db:types": "supabase gen types typescript --local > src/types/database.generated.ts",
-    "db:setup-sql": "node scripts/build-setup-sql.mjs"
+    "db:setup-sql": "node scripts/build-setup-sql.mjs",
+    "postinstall": "node scripts/patch-react-pdf.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
