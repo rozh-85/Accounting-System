@@ -378,12 +378,12 @@ export function VoucherFormPage() {
         <div className="mx-auto flex max-w-[2800px] flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 lg:px-8">
           <ButtonLink to={editing ? `/journal/vouchers/${id}` : '/journal/vouchers'} variant="ghost">{t('common.cancel')}</ButtonLink>
           <Button onClick={() => void submit('draft')} loading={busyIntent === 'draft'} disabled={Boolean(busyIntent)}>{t('journal.saveDraft')}</Button>
-          {can('entries.submit') && (requireApproval || !canPostDirectly) && (
-            <Button variant="primary" onClick={() => void submit('submit')} loading={busyIntent === 'submit'} disabled={Boolean(busyIntent) || !summary.isBalanced}>{t('journal.saveAndSubmit')}</Button>
-          )}
-          {canPostDirectly && (
+          {/* One next step: post if this user may, otherwise send for approval. */}
+          {canPostDirectly ? (
             <Button variant="accent" onClick={() => void submit('post')} loading={busyIntent === 'post'} disabled={Boolean(busyIntent) || !summary.isBalanced}>{t('vouchers.saveAndPost')}</Button>
-          )}
+          ) : can('entries.submit') ? (
+            <Button variant="accent" onClick={() => void submit('submit')} loading={busyIntent === 'submit'} disabled={Boolean(busyIntent) || !summary.isBalanced}>{t('journal.saveAndSubmit')}</Button>
+          ) : null}
         </div>
       </div>
     </form>

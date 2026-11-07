@@ -1,4 +1,4 @@
-import { balanceSideOf } from './balances';
+import { balanceSideOf, splitNet } from './balances';
 import { absUnits, maxUnits, sumUnits, toUnits, type Units } from './money';
 import type { BalanceSide, EntryStatus, EntryType, VoucherType } from './types';
 
@@ -50,6 +50,73 @@ export interface LedgerStatement {
   periodDebit: Units;
   periodCredit: Units;
   closingNet: Units;
+}
+
+export interface DailyLedgerRow {
+  serial: number;
+  date: string;
+  debit: Units;
+  credit: Units;
+  /** Balance after the day. One side is always zero. */
+  balanceDebit: Units;
+  balanceCredit: Units;
+}
+
+export interface DailyLedgerMonth {
+  /** yyyy-MM */
+  key: string;
+  rows: DailyLedgerRow[];
+}
+
+export interface DailyLedger {
+  openingDebit: Units;
+  openingCredit: Units;
+  months: DailyLedgerMonth[];
+  totalDebit: Units;
+  totalCredit: Units;
+  closingDebit: Units;
+  closingCredit: Units;
+}
+
+/**
+ * Daily ledger (سجل الأستاذ): a statement condensed to one row per day, with the
+ * day's debit and credit totals and the running balance, grouped by month.
+ */
+export function buildDailyLedger(statement: LedgerStatement): DailyLedger {
+  const days = new Map<string, { debit: Units; credit: Units; closing: Units }>();
+  for (const m of statement.movements) {
+    const day = days.get(m.entryDate) ?? { debit: 0n, credit: 0n, closing: 0n };
+    day.debit += m.debit;
+    day.credit += m.credit;
+    day.closing = m.runningNet;
+    days.set(m.entryDate, day);
+  }
+
+  const months: DailyLedgerMonth[] = [];
+  let serial = 0;
+  for (const [date, day] of days) {
+    const key = date.slice(0, 7);
+    let month = months[months.length - 1];
+    if (month?.key !== key) {
+      month = { key, rows: [] };
+      months.push(month);
+    }
+    serial += 1;
+    const balance = splitNet(day.closing);
+    month.rows.push({ serial, date, debit: day.debit, credit: day.credit, balanceDebit: balance.debit, balanceCredit: balance.credit });
+  }
+
+  const opening = splitNet(statement.openingNet);
+  const closing = splitNet(statement.closingNet);
+  return {
+    openingDebit: opening.debit,
+    openingCredit: opening.credit,
+    months,
+    totalDebit: statement.periodDebit,
+    totalCredit: statement.periodCredit,
+    closingDebit: closing.debit,
+    closingCredit: closing.credit,
+  };
 }
 
 export function buildLedgerStatement(

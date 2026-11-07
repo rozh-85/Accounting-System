@@ -175,6 +175,8 @@ export const en = {
     },
   },
   ledger: {
+    dailyView: 'Daily ledger', totalDebit: 'Total debit', totalCredit: 'Total credit', debitBalance: 'Debit balance', creditBalance: 'Credit balance',
+    previousBalance: 'Previous balance', openDay: 'Show this day in detail',
     selection: 'Show', singleAccount: 'Single account', accountRange: 'Account range', chooseAccount: 'Choose an account (posting or group)…',
     fromAccount: 'From account', toAccount: 'To account', selectPrompt: 'Select an account', selectHint: 'Choose an account or a group account to aggregate its sub-accounts, or define a code range.',
     noAccountsInRange: 'No posting accounts in this range', tAccountView: 'T-account', generalLedgerView: 'General ledger',
@@ -249,6 +251,7 @@ export const en = {
       entry: { title: 'Journal Entry', description: 'A single entry with its lines, approvals and signature fields. Print from the entry page.', action: 'Open journal' },
       voucher: { title: 'Voucher Documents', description: 'Receipt, payment, journal and transfer vouchers with amount in words and signatures.', action: 'Open vouchers' },
       voucherRegister: { title: 'Voucher Register', description: 'All vouchers in a date range by type and status, with totals and net receipts less payments.', action: 'Open vouchers' },
+      dailyLedger: { title: 'Daily Ledger', description: 'One row per day with total debit, total credit and the running balance, grouped by month.', action: 'Open ledger' },
       ledger: { title: 'General Ledger Statement', description: 'Account statement with opening balance, movements, running balance and ending balance.', action: 'Open ledger' },
       tAccount: { title: 'T-Account', description: 'Visual T-account with debit on the left, credit on the right and the balance.', action: 'Open ledger' },
       trialBalance: { title: 'Trial Balance', description: 'Summary or detailed trial balance with balance validation.', action: 'Open trial balance' },
@@ -298,6 +301,7 @@ export const en = {
     categoryRequired: 'Posting accounts need a classification.',
   },
   pdf: {
+    dailyLedger: { title: 'General Ledger' },
     generatedAt: 'Generated {{date}}', generatedBy: 'by {{name}}', pageOf: 'Page {{page}} of {{total}}', period: 'Period', status: 'Status',
     entries: 'Entries', currency: 'Currency', grandTotal: 'Grand total', noData: 'No data for the selected parameters.', allDates: 'All dates',
     taxNumber: 'Tax no.', preparedBy: 'Prepared by', reviewedBy: 'Reviewed by', approvedBy: 'Approved by', accountant: 'Accountant', manager: 'Manager',

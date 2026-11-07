@@ -68,8 +68,8 @@ function TextBlock({ label, value }: { label: string; value: string | null | und
   const r = useReport();
   if (!value) return null;
   return (
-    <View style={{ marginTop: 10 }} wrap={false}>
-      <Text style={{ fontSize: 7.8, color: colors.muted, textAlign: r.start }}>{label}</Text>
+    <View style={{ marginTop: 7 }} wrap={false}>
+      <Text style={{ fontSize: 7.2, color: colors.muted, textAlign: r.start }}>{label}</Text>
       <Text style={{ marginTop: 2, textAlign: r.start }}>{value}</Text>
     </View>
   );
@@ -81,7 +81,6 @@ export function JournalEntryDocument({ context, decimals, entry }: { context: Re
   const title = t('pdf.entry.title');
   const { rows, balanced } = lineRows(entry.lines, language, decimals, t);
   const items: MetaItem[] = [
-    { label: t('journal.entryNumber'), value: entry.entry_number },
     { label: t('journal.entryDate'), value: formatDate(entry.entry_date) },
     { label: t('journal.entryType'), value: t(`entryTypes.${entry.entry_type}`) },
     { label: t('journal.status'), value: t(`status.${entry.status}`) },
@@ -97,10 +96,10 @@ export function JournalEntryDocument({ context, decimals, entry }: { context: Re
   return (
     <ReportDocument context={context} title={`${title} ${entry.entry_number}`}>
       <ReportPage title={`${title} ${entry.entry_number}`}>
-        <ReportHeader title={title} subtitle={entry.entry_number} meta={[{ label: t('journal.entryDate'), value: formatDate(entry.entry_date) }]} />
+        <ReportHeader compact title={title} subtitle={entry.entry_number} />
         <KeyValueGrid items={items} />
         <TextBlock label={t('journal.description')} value={entry.description} />
-        <View style={{ marginTop: 12 }}>
+        <View style={{ marginTop: 9 }}>
           <PdfTable columns={linesColumns(t)} rows={rows} />
         </View>
         <StatusLine ok={balanced}>{balanced ? t('journal.balanced') : t('journal.unbalanced')}</StatusLine>
@@ -140,7 +139,6 @@ export function VoucherDocument({
   };
 
   const items: MetaItem[] = [
-    { label: t('vouchers.number'), value: voucher.voucher_number },
     { label: t('vouchers.date'), value: formatDate(voucher.voucher_date) },
   ];
   if (voucher.voucher_type === 'receipt' || voucher.voucher_type === 'payment') {
@@ -167,10 +165,10 @@ export function VoucherDocument({
   return (
     <ReportDocument context={context} title={`${title} ${voucher.voucher_number}`}>
       <ReportPage title={`${title} ${voucher.voucher_number}`}>
-        <ReportHeader title={title} subtitle={voucher.voucher_number} meta={[{ label: t('vouchers.date'), value: formatDate(voucher.voucher_date) }]} />
-        <View wrap={false} style={{ borderWidth: 1, borderColor: colors.ink, padding: 10, marginBottom: 12 }}>
+        <ReportHeader compact title={title} subtitle={voucher.voucher_number} />
+        <View wrap={false} style={{ borderWidth: 1, borderColor: colors.ink, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 8 }}>
           <Text style={{ fontSize: 8, color: colors.muted, textAlign: context.language === 'ar' ? 'right' : 'left' }}>{t('vouchers.amount')}</Text>
-          <Text style={{ fontSize: 17, fontWeight: 700, marginTop: 2, direction: 'ltr', textAlign: context.language === 'ar' ? 'right' : 'left' } as never}>
+          <Text style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.35, marginTop: 1, direction: 'ltr', textAlign: context.language === 'ar' ? 'right' : 'left' } as never}>
             {formatUnits(amount, { decimals })} {voucher.currency_code}
           </Text>
           <Text style={{ marginTop: 4, fontSize: 9, textAlign: context.language === 'ar' ? 'right' : 'left' }}>{amountInWords(amount, currency, language)}</Text>

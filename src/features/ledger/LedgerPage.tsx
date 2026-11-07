@@ -14,12 +14,15 @@ import { Segmented } from '@/components/ui/Tabs';
 import { fiscalYearFor, useAccounts, useFiscalYears } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useReportIdentity } from '@/hooks/useReportIdentity';
-import { absUnits, buildTAccount, formatUnits, type Account, type TAccountItem, type Units } from '@/lib/accounting';
+import { absUnits, buildDailyLedger, buildTAccount, formatUnits, type Account, type TAccountItem, type Units } from '@/lib/accounting';
 import { downloadCsv } from '@/lib/csv';
 import { formatDate, startOfYear, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { ReportDialog } from '@/features/reports/ReportDialog';
+import { DailyLedgerTable } from './DailyLedgerTable';
 import { useLedger, type LedgerSection, type LedgerSelection } from './useLedger';
+
+type LedgerView = 'daily' | 't' | 'gl';
 
 export function RoomHeading({ number, roomKey }: { number: string; roomKey: string }) {
   const { t } = useTranslation();
@@ -64,7 +67,7 @@ function SummaryStrip({ section }: { section: LedgerSection }) {
 
 function TAccountView({ section, accountsById }: { section: LedgerSection; accountsById: Map<string, Account> }) {
   const { t } = useTranslation();
-  const { name, isRtl } = useLanguage();
+  const { name } = useLanguage();
   const { currency } = useCompany();
   const fmt = (u: Units) => formatUnits(u, { decimals: currency.decimals });
   const tAccount = buildTAccount(section.statement, { opening: t('ledger.openingBd'), balanceCd: t('ledger.balanceCd') });
@@ -109,16 +112,16 @@ function TAccountView({ section, accountsById }: { section: LedgerSection; accou
           {section.aggregated && ` · ${t('ledger.aggregated')}`}
         </p>
       </div>
-      {/* Debit is always on the left and credit on the right, in both languages. */}
-      <div dir="ltr" className="mx-5 mb-5 border-t-2 border-ink">
+      {/* Debit comes first in reading order: on the right in Arabic, on the left in English. */}
+      <div className="mx-5 mb-5 border-t-2 border-ink">
         <div className="grid grid-cols-2">
           <div className="border-e-2 border-ink">
             <p className="border-b border-line py-2 text-center text-[12.5px] font-semibold text-ink-soft">{t('ledger.debitSide')}</p>
-            <div dir={isRtl ? 'rtl' : 'ltr'}>{side('debit', tAccount.debitItems, debitCarried)}</div>
+            {side('debit', tAccount.debitItems, debitCarried)}
           </div>
           <div>
             <p className="border-b border-line py-2 text-center text-[12.5px] font-semibold text-ink-soft">{t('ledger.creditSide')}</p>
-            <div dir={isRtl ? 'rtl' : 'ltr'}>{side('credit', tAccount.creditItems, creditCarried)}</div>
+            {side('credit', tAccount.creditItems, creditCarried)}
           </div>
         </div>
         <div className="grid grid-cols-2">
@@ -208,7 +211,7 @@ export function LedgerPage() {
   const { accounts, byId, isLoading } = useAccounts();
   const { fiscalYears } = useFiscalYears();
   const [params, setParams] = useSearchParams();
-  const [report, setReport] = useState<'t' | 'gl' | null>(null);
+  const [report, setReport] = useState<LedgerView | null>(null);
 
   const today = todayIso();
   const defaultFrom = fiscalYearFor(fiscalYears, today)?.start_date ?? startOfYear(today);
@@ -223,7 +226,8 @@ export function LedgerPage() {
     }),
     [params, defaultFrom, today],
   );
-  const view = params.get('view') === 'gl' ? 'gl' : 't';
+  const requestedView = params.get('view');
+  const view: LedgerView = requestedView === 'gl' || requestedView === 't' ? requestedView : 'daily';
   const update = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [k, v] of Object.entries(patch)) {
@@ -246,7 +250,25 @@ export function LedgerPage() {
     return t('ledger.sundries', { lng });
   };
 
+  const exportDailyCsv = () => {
+    const money = (u: Units) => formatUnits(u, { decimals: currency.decimals });
+    const rows: Array<Array<string>> = [];
+    for (const section of sections) {
+      const daily = buildDailyLedger(section.statement);
+      const account = [section.account.code, name(section.account)];
+      rows.push([...account, '', t('ledger.previousBalance'), '', '', money(daily.openingDebit), money(daily.openingCredit)]);
+      for (const month of daily.months) {
+        for (const row of month.rows) {
+          rows.push([...account, String(row.serial), formatDate(row.date), money(row.debit), money(row.credit), money(row.balanceDebit), money(row.balanceCredit)]);
+        }
+      }
+      rows.push([...account, '', t('common.total'), money(daily.totalDebit), money(daily.totalCredit), money(daily.closingDebit), money(daily.closingCredit)]);
+    }
+    downloadCsv(`daily-ledger-${selection.from}-${selection.to}`, [t('accounts.code'), t('accounts.name'), '#', t('ledger.transactionDate'), t('ledger.totalDebit'), t('ledger.totalCredit'), t('ledger.debitBalance'), t('ledger.creditBalance')], rows);
+  };
+
   const exportCsv = () => {
+    if (view === 'daily') return exportDailyCsv();
     const rows: Array<Array<string>> = [];
     for (const section of sections) {
       const s = section.statement;
@@ -316,20 +338,16 @@ export function LedgerPage() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <Segmented
               value={view}
-              onChange={(v) => update({ view: v === 'gl' ? 'gl' : null })}
+              onChange={(v) => update({ view: v === 'daily' ? null : v })}
               options={[
+                { value: 'daily', label: t('ledger.dailyView') },
                 { value: 't', label: t('ledger.tAccountView') },
                 { value: 'gl', label: t('ledger.generalLedgerView') },
               ]}
             />
             <div className="flex flex-wrap gap-2">
               <Button icon={<FileSpreadsheet size={15} />} onClick={exportCsv}>{t('common.exportCsv')}</Button>
-              {can('reports.export') && (
-                <>
-                  <Button icon={<FileDown size={15} />} onClick={() => setReport('t')}>{t('ledger.tAccountPdf')}</Button>
-                  <Button icon={<FileDown size={15} />} onClick={() => setReport('gl')}>{t('ledger.ledgerPdf')}</Button>
-                </>
-              )}
+              {can('reports.export') && <Button icon={<FileDown size={15} />} onClick={() => setReport(view)}>{t('common.exportPdf')}</Button>}
             </div>
           </div>
           <div className="flex flex-col gap-6">
@@ -341,8 +359,20 @@ export function LedgerPage() {
                     {name(section.account)}
                   </h2>
                 )}
-                <SummaryStrip section={section} />
-                {view === 't' ? <TAccountView section={section} accountsById={byId} /> : <LedgerTable section={section} accountsById={byId} />}
+                {view === 'daily' ? (
+                  <DailyLedgerTable
+                    statement={section.statement}
+                    title={`${section.account.code} — ${name(section.account)}`}
+                    from={selection.from}
+                    to={selection.to}
+                    onOpenDay={(date) => update({ from: date, to: date, view: 'gl' })}
+                  />
+                ) : (
+                  <>
+                    <SummaryStrip section={section} />
+                    {view === 't' ? <TAccountView section={section} accountsById={byId} /> : <LedgerTable section={section} accountsById={byId} />}
+                  </>
+                )}
               </section>
             ))}
           </div>
@@ -352,8 +382,8 @@ export function LedgerPage() {
       <ReportDialog
         open={report !== null}
         onClose={() => setReport(null)}
-        title={report === 't' ? t('pdf.tAccount.title') : t('pdf.ledger.title')}
-        fileName={report === 't' ? 't-account' : 'ledger-statement'}
+        title={report === 't' ? t('pdf.tAccount.title') : report === 'gl' ? t('pdf.ledger.title') : t('pdf.dailyLedger.title')}
+        fileName={report === 't' ? 't-account' : report === 'gl' ? 'ledger-statement' : 'daily-ledger'}
         defaultSignatures={identity.signatures}
         generate={async ({ language, signatures }) => {
           const pdf = await import('@/lib/pdf');
@@ -367,7 +397,9 @@ export function LedgerPage() {
             accountLabel: counterLabel(language),
             signatures,
           };
-          return pdf.renderToBlob(report === 't' ? <pdf.TAccountReport {...input} /> : <pdf.LedgerStatementReport {...input} />);
+          return pdf.renderToBlob(
+            report === 't' ? <pdf.TAccountReport {...input} /> : report === 'gl' ? <pdf.LedgerStatementReport {...input} /> : <pdf.DailyLedgerReport {...input} />,
+          );
         }}
       />
     </>

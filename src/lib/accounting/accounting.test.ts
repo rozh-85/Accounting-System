@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   amountInWords,
   buildFinancialPosition,
+  buildDailyLedger,
   buildLedgerStatement,
   buildSimpleEntryLines,
   buildTAccount,
@@ -234,6 +235,51 @@ describe('ledger and T-accounts', () => {
   it('resolves account hierarchies and ranges to posting accounts', () => {
     expect(postingAccountsUnder(chart, 'a').map((a) => a.code)).toEqual(['1110', '1130', '1220', '1290']);
     expect(postingAccountsInRange(chart, '2000', '3999').map((a) => a.code)).toEqual(['2110', '2210', '3100', '3200']);
+  });
+});
+
+describe('daily ledger', () => {
+  const row = (id: string, date: string, debit: number, credit: number, number: string) => ({
+    line_id: id, account_id: 'cash', entry_id: id, entry_number: number, entry_date: date, entry_type: 'standard' as const,
+    entry_status: 'posted' as const, voucher_id: null, voucher_type: null, voucher_number: null, entry_description: 'x',
+    line_description: null, debit_amount: debit, credit_amount: credit, line_number: 1, counter_account_id: null,
+    counter_line_count: 1, reversal_of_id: null,
+  });
+
+  it('gives one row per day with both sides and the running balance', () => {
+    const statement = buildLedgerStatement(['cash'], { debit: u(5_000), credit: 0n }, [
+      row('a', '2026-08-01', 1_000, 0, 'JE-1'),
+      row('b', '2026-08-01', 0, 400, 'JE-2'),
+      row('c', '2026-08-02', 0, 9_000, 'JE-3'),
+      row('d', '2026-09-03', 3_000, 0, 'JE-4'),
+    ]);
+    const daily = buildDailyLedger(statement);
+
+    expect(daily.openingDebit).toBe(u(5_000));
+    expect(daily.openingCredit).toBe(0n);
+    expect(daily.months.map((m) => m.key)).toEqual(['2026-08', '2026-09']);
+    const [first, second] = daily.months[0].rows;
+    expect([first.serial, first.debit, first.credit, first.balanceDebit, first.balanceCredit]).toEqual([1, u(1_000), u(400), u(5_600), 0n]);
+    // Balance crosses to the credit side: it moves column instead of going negative.
+    expect([second.serial, second.debit, second.credit, second.balanceDebit, second.balanceCredit]).toEqual([2, 0n, u(9_000), 0n, u(3_400)]);
+    expect(daily.months[1].rows[0].serial).toBe(3);
+    expect([daily.totalDebit, daily.totalCredit]).toEqual([u(4_000), u(9_400)]);
+    expect([daily.closingDebit, daily.closingCredit]).toEqual([0n, u(400)]);
+  });
+
+  it('agrees with the statement it condenses', () => {
+    const statement = buildLedgerStatement(['cash'], { debit: 0n, credit: u(700) }, [row('a', '2026-01-05', 200, 0, 'JE-1'), row('b', '2026-02-05', 0, 100, 'JE-2')]);
+    const daily = buildDailyLedger(statement);
+    const rows = daily.months.flatMap((m) => m.rows);
+    expect(rows.reduce((sum, r) => sum + r.debit, 0n)).toBe(statement.periodDebit);
+    expect(rows.reduce((sum, r) => sum + r.credit, 0n)).toBe(statement.periodCredit);
+    expect(daily.closingDebit - daily.closingCredit).toBe(statement.closingNet);
+  });
+
+  it('handles an account with no movements', () => {
+    const daily = buildDailyLedger(buildLedgerStatement(['cash'], { debit: u(100), credit: 0n }, []));
+    expect(daily.months).toEqual([]);
+    expect(daily.closingDebit).toBe(u(100));
   });
 });
 

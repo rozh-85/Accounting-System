@@ -48,6 +48,68 @@ describe('demo company', () => {
     expect(await count('recurring_entry_templates', demo)).toBe(1);
   });
 
+  it('uses the full Kurdistan chart of accounts', async () => {
+    expect(await count('accounts', demo)).toBe(731);
+    const settings = await db.query<{ code: string }>(
+      `select a.code from public.company_settings s join public.accounts a on a.id = s.retained_earnings_account_id where s.company_id = $1`,
+      [demo],
+    );
+    expect(settings.rows[0].code).toBe('224');
+    const types = await db.query<{ code: string; account_type: string; is_posting: boolean; parent: string | null }>(
+      `select a.code, a.account_type, a.is_posting, p.code as parent
+         from public.accounts a left join public.accounts p on p.id = a.parent_id
+        where a.company_id = $1 and a.code in ('1', '211', '2316', '2414', '3111', '42111', '4211')`,
+      [demo],
+    );
+    const byCode = Object.fromEntries(types.rows.map((r) => [r.code, r]));
+    expect(byCode['1'].is_posting).toBe(false);
+    expect(byCode['211'].account_type).toBe('equity');
+    expect(byCode['2316'].account_type).toBe('asset');
+    expect(byCode['2414'].account_type).toBe('liability');
+    expect(byCode['42111'].parent).toBe('4211');
+    expect(byCode['4211'].is_posting).toBe(false);
+  });
+
+  it('chart passes the rules the account trigger normally enforces', async () => {
+    const broken = await db.query(
+      `select c.code
+         from public.accounts c
+         left join public.accounts p on p.id = c.parent_id
+         left join public.account_categories k on k.code = c.category_code
+        where c.company_id = $1
+          and ((p.id is not null and (p.is_posting or p.account_type <> c.account_type or p.company_id <> c.company_id or c.level <> p.level + 1))
+            or (p.id is null and c.level <> 1)
+            or (c.is_posting and k.code is null)
+            or (k.code is not null and k.account_type <> c.account_type)
+            or (not c.is_posting and not exists (select 1 from public.accounts k2 where k2.parent_id = c.id)))`,
+      [demo],
+    );
+    expect(broken.rows).toEqual([]);
+    const guards = await db.query(`select 1 from pg_trigger where tgrelid = 'public.accounts'::regclass and tgenabled = 'D' and not tgisinternal`);
+    expect(guards.rows).toHaveLength(0);
+    const audit = await db.query<{ n: string }>(`select count(*) as n from public.audit_logs where company_id = $1 and entity_type = 'accounts'`, [demo]);
+    expect(Number(audit.rows[0].n)).toBe(0);
+  });
+
+  it('posts sample activity to the chart, and assets equal liabilities plus equity', async () => {
+    const totals = await db.query<{ account_type: string; net: string }>(
+      `select a.account_type, sum(l.debit_amount - l.credit_amount) as net
+         from public.journal_entry_lines l
+         join public.journal_entries e on e.id = l.journal_entry_id
+         join public.accounts a on a.id = l.account_id
+        where e.company_id = $1 and e.status in ('posted', 'reversed')
+        group by a.account_type`,
+      [demo],
+    );
+    const net = Object.fromEntries(totals.rows.map((r) => [r.account_type, Number(r.net)]));
+    expect(net.asset).toBeGreaterThan(0);
+    expect(net.revenue).toBeLessThan(0);
+    expect(net.expense).toBeGreaterThan(0);
+    expect(net.liability).toBeLessThan(0);
+    expect(net.equity).toBeLessThan(0);
+    expect(net.asset + net.liability + net.equity + net.revenue + net.expense).toBe(0);
+  });
+
   it('sample data balances', async () => {
     const totals = await db.query<{ debit: string; credit: string }>(
       `select sum(l.debit_amount) as debit, sum(l.credit_amount) as credit

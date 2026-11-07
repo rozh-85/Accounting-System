@@ -23,6 +23,7 @@ import type { JournalEntryDetail, VoucherDetail } from '@/types/database';
 import { registerPdfFonts } from './fonts';
 import type { PdfLanguage, ReportContextValue, Translate } from './primitives';
 import {
+  DailyLedgerReport,
   FinancialPositionReport,
   JournalEntryDocument,
   JournalReport,
@@ -248,6 +249,8 @@ describe.each(['ar', 'en'] as const)('PDF reports (%s)', (language) => {
       accountLabel: (id: string | null, count: number) => (count === 1 && id ? (language === 'ar' ? byId.get(id)!.name_ar : byId.get(id)!.name_en) : language === 'ar' ? 'مذكورين' : 'Sundries'),
     };
     const gl = await render(`ledger-${language}`, <LedgerStatementReport {...input} />);
+    const daily = await render(`daily-ledger-${language}`, <DailyLedgerReport {...input} />);
+    expect(daily.pages).toBeGreaterThanOrEqual(1);
     const t = await render(`t-account-${language}`, <TAccountReport {...input} />);
     expect(gl.pages).toBeGreaterThanOrEqual(1);
     expect(t.pages).toBeGreaterThanOrEqual(1);

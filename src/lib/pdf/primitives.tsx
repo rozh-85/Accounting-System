@@ -169,7 +169,7 @@ export interface MetaItem {
 }
 
 /** First-page report header: company identity, title and report parameters. */
-export function ReportHeader({ title, subtitle, meta = [] }: { title: string; subtitle?: string; meta?: MetaItem[] }) {
+export function ReportHeader({ title, subtitle, meta = [], compact = false }: { title: string; subtitle?: string; meta?: MetaItem[]; compact?: boolean }) {
   const r = useReport();
   const company = r.company;
   const otherName = r.rtl ? company.name_en : company.name_ar;
@@ -177,10 +177,10 @@ export function ReportHeader({ title, subtitle, meta = [] }: { title: string; su
   const contact = [company.phone, company.email].filter(Boolean).join('  ·  ');
 
   return (
-    <View style={{ marginBottom: 14 }}>
-      <View style={{ flexDirection: r.row, justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 10, borderBottomWidth: 1.4, borderBottomColor: colors.ink }}>
+    <View style={{ marginBottom: compact ? 8 : 14 }}>
+      <View style={{ flexDirection: r.row, justifyContent: 'space-between', alignItems: compact ? 'center' : 'flex-start', paddingBottom: compact ? 6 : 10, borderBottomWidth: 1.4, borderBottomColor: colors.ink }}>
         <View style={{ maxWidth: '62%' }}>
-          <Text style={{ fontSize: 13, fontWeight: 600, textAlign: r.start, lineHeight: 1.55 }}>{r.localName(company)}</Text>
+          <Text style={{ fontSize: compact ? 11 : 13, fontWeight: 600, textAlign: r.start, lineHeight: 1.55 }}>{r.localName(company)}</Text>
           {otherName ? <Text style={{ fontSize: 9, color: colors.muted, marginTop: 2, lineHeight: 1.5, textAlign: r.start, fontFamily: r.rtl ? r.fonts.en : r.fonts.ar, direction: r.rtl ? 'ltr' : 'rtl' } as Style}>{otherName}</Text> : null}
           {address ? <Text style={{ fontSize: 7.6, color: colors.muted, marginTop: 4, textAlign: r.start }}>{address}</Text> : null}
           {company.tax_number ? (
@@ -190,13 +190,13 @@ export function ReportHeader({ title, subtitle, meta = [] }: { title: string; su
           ) : null}
           {contact ? <Text style={{ fontSize: 7.6, color: colors.muted, marginTop: 1, textAlign: r.start, direction: 'ltr' } as Style}>{contact}</Text> : null}
         </View>
-        {r.logoSrc ? <Image src={r.logoSrc} style={{ height: 30, objectFit: 'contain' }} /> : null}
+        {r.logoSrc ? <Image src={r.logoSrc} style={{ height: compact ? 22 : 30, objectFit: 'contain' }} /> : null}
       </View>
 
-      <View style={{ flexDirection: r.row, justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 12 }}>
-        <View style={{ maxWidth: '55%' }}>
-          <Text style={{ fontSize: 15, fontWeight: 600, textAlign: r.start, lineHeight: 1.55 }}>{title}</Text>
-          {subtitle ? <Text style={{ fontSize: 9, color: colors.inkSoft, marginTop: 3, textAlign: r.start, lineHeight: 1.5 }}>{subtitle}</Text> : null}
+      <View style={{ flexDirection: r.row, justifyContent: 'space-between', alignItems: compact ? 'center' : 'flex-end', marginTop: compact ? 7 : 12 }}>
+        <View style={compact ? { flexGrow: 1, flexDirection: r.row, justifyContent: 'space-between', alignItems: 'center' } : { maxWidth: '55%' }}>
+          <Text style={{ fontSize: compact ? 12.5 : 15, fontWeight: 600, textAlign: r.start, lineHeight: 1.55 }}>{title}</Text>
+          {subtitle ? <Text style={{ fontSize: compact ? 10 : 9, fontWeight: compact ? 600 : 400, color: colors.inkSoft, marginTop: compact ? 0 : 3, textAlign: r.start, lineHeight: 1.5 }}>{subtitle}</Text> : null}
         </View>
         {meta.length > 0 && (
           <View style={{ minWidth: 180 }}>
@@ -227,7 +227,7 @@ export interface PdfColumn {
   numeric?: boolean;
 }
 
-export type PdfRowVariant = 'normal' | 'group' | 'subtotal' | 'total' | 'muted' | 'section';
+export type PdfRowVariant = 'normal' | 'group' | 'subtotal' | 'total' | 'muted' | 'section' | 'band';
 
 export interface PdfRow {
   key: string;
@@ -258,6 +258,7 @@ const variantStyles: Record<PdfRowVariant, Style> = {
   section: { fontWeight: 600, fontSize: 9.2, paddingTop: 7 },
   subtotal: { fontWeight: 600, borderTopWidth: 0.6, borderTopColor: colors.lineStrong },
   total: { fontWeight: 700, backgroundColor: colors.subtle, borderTopWidth: 1, borderTopColor: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.ink },
+  band: { fontWeight: 700, color: '#ffffff', backgroundColor: colors.ink },
 };
 
 export interface PdfColumnGroup {
@@ -270,12 +271,15 @@ export function PdfTable({
   columns,
   rows,
   repeatHeader = true,
+  headerBand = false,
   emptyLabel,
   groups,
 }: {
   columns: PdfColumn[];
   rows: PdfRow[];
   repeatHeader?: boolean;
+  /** Dark header band with white text. */
+  headerBand?: boolean;
   emptyLabel?: string;
   groups?: PdfColumnGroup[];
 }) {
@@ -301,7 +305,7 @@ export function PdfTable({
 
   return (
     <View>
-      <View fixed={repeatHeader} style={{ borderTopWidth: 1, borderTopColor: colors.ink, borderBottomWidth: 0.8, borderBottomColor: colors.ink, backgroundColor: colors.subtle }}>
+      <View fixed={repeatHeader} style={{ borderTopWidth: 1, borderTopColor: colors.ink, borderBottomWidth: 0.8, borderBottomColor: colors.ink, backgroundColor: headerBand ? colors.ink : colors.subtle }}>
         {groupCells.length > 0 && (
           <View style={{ flexDirection: r.row, paddingTop: 4 }}>
             {groupCells.map((cell) => (
@@ -313,7 +317,7 @@ export function PdfTable({
         )}
         <View style={{ flexDirection: r.row, paddingVertical: 4.5 }}>
           {columns.map((column) => (
-            <Text key={column.key} style={[cellStyle(column, r), { fontWeight: 600, fontSize: 7.8, color: colors.inkSoft }]}>
+            <Text key={column.key} style={[cellStyle(column, r), { fontWeight: 600, fontSize: 7.8, color: headerBand ? '#ffffff' : colors.inkSoft }]}>
               {column.header}
             </Text>
           ))}
@@ -390,24 +394,16 @@ export function SignatureBlock({ labels, names = [] }: { labels: string[]; names
   );
 }
 
-export function KeyValueGrid({ items, columns = 2 }: { items: MetaItem[]; columns?: number }) {
+/** Compact strip of document facts. Empty values are left out, so it stays short. */
+export function KeyValueGrid({ items, columns = 4 }: { items: MetaItem[]; columns?: number }) {
   const r = useReport();
+  const filled = items.filter((item) => item.value && item.value !== '—');
   return (
-    <View style={{ flexDirection: r.row, flexWrap: 'wrap', borderTopWidth: 0.6, borderTopColor: colors.line }}>
-      {items.map((item) => (
-        <View
-          key={item.label}
-          style={{
-            width: `${100 / columns}%`,
-            flexDirection: r.row,
-            paddingVertical: 4.5,
-            paddingHorizontal: 4,
-            borderBottomWidth: 0.6,
-            borderBottomColor: colors.line,
-          }}
-        >
-          <Text style={{ width: 92, color: colors.muted, textAlign: r.start }}>{item.label}</Text>
-          <Text style={{ flex: 1, fontWeight: 500, textAlign: r.start }}>{item.value}</Text>
+    <View style={{ flexDirection: r.row, flexWrap: 'wrap', backgroundColor: colors.subtle, paddingHorizontal: 2, paddingTop: 5 }}>
+      {filled.map((item) => (
+        <View key={item.label} style={{ width: `${100 / columns}%`, paddingHorizontal: 5, paddingBottom: 5 }}>
+          <Text style={{ fontSize: 7, color: colors.muted, textAlign: r.start }}>{item.label}</Text>
+          <Text style={{ fontSize: 8.4, fontWeight: 500, textAlign: r.start }}>{item.value}</Text>
         </View>
       ))}
     </View>

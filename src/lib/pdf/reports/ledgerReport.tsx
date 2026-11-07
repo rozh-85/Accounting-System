@@ -1,6 +1,6 @@
 import { Text, View } from '@react-pdf/renderer';
-import { absUnits, buildTAccount, formatUnits, type LedgerStatement, type Units } from '@/lib/accounting';
-import { formatDate } from '@/lib/formatting';
+import { buildDailyLedger, absUnits, buildTAccount, formatUnits, type LedgerStatement, type Units } from '@/lib/accounting';
+import { formatDate, formatPeriodName } from '@/lib/formatting';
 import {
   PdfTable,
   ReportDocument,
@@ -38,6 +38,67 @@ export interface LedgerReportInput {
 function balanceText(net: Units, decimals: number, t: ReportContextValue['t']) {
   if (net === 0n) return formatUnits(0n, { decimals });
   return `${formatUnits(absUnits(net), { decimals })} ${net > 0n ? t('ledger.dr') : t('ledger.cr')}`;
+}
+
+/** Daily ledger — سجل الأستاذ: one row per day with both sides and the balance. One page flow per account. */
+export function DailyLedgerReport({ context, decimals, currencyCode, from, to, accounts, signatures }: Omit<LedgerReportInput, 'accountLabel'>) {
+  const { t, language } = context;
+  const title = t('pdf.dailyLedger.title');
+  const fmt = (v: Units) => formatUnits(v, { decimals });
+  const period = `${formatDate(from) || '…'} – ${formatDate(to) || '…'}`;
+  const columns: PdfColumn[] = [
+    { key: 'serial', header: '#', width: 26, align: 'center' },
+    { key: 'date', header: t('ledger.transactionDate'), width: 86 },
+    { key: 'debit', header: t('ledger.totalDebit'), flex: 1, numeric: true },
+    { key: 'credit', header: t('ledger.totalCredit'), flex: 1, numeric: true },
+    { key: 'balanceDebit', header: t('ledger.debitBalance'), flex: 1, numeric: true },
+    { key: 'balanceCredit', header: t('ledger.creditBalance'), flex: 1, numeric: true },
+  ];
+
+  return (
+    <ReportDocument context={context} title={title}>
+      {accounts.map((account) => {
+        const daily = buildDailyLedger(account.statement);
+        const rows: PdfRow[] = [
+          { key: 'opening', variant: 'group', cells: { date: t('ledger.previousBalance'), balanceDebit: fmt(daily.openingDebit), balanceCredit: fmt(daily.openingCredit) } },
+          ...daily.months.flatMap((month): PdfRow[] => [
+            { key: month.key, variant: 'section', cells: { date: formatPeriodName(month.key, language) } },
+            ...month.rows.map((row) => ({
+              key: row.date,
+              cells: {
+                serial: String(row.serial),
+                date: formatDate(row.date),
+                debit: fmt(row.debit),
+                credit: fmt(row.credit),
+                balanceDebit: fmt(row.balanceDebit),
+                balanceCredit: fmt(row.balanceCredit),
+              },
+            })),
+          ]),
+          {
+            key: 'totals',
+            variant: 'band',
+            cells: { date: t('common.total'), debit: fmt(daily.totalDebit), credit: fmt(daily.totalCredit), balanceDebit: fmt(daily.closingDebit), balanceCredit: fmt(daily.closingCredit) },
+          },
+        ];
+        const name = language === 'ar' ? account.name_ar : account.name_en;
+        return (
+          <ReportPage key={account.code} title={title}>
+            <ReportHeader
+              title={title}
+              subtitle={`${account.code} — ${name}${account.aggregated ? ` (${t('ledger.aggregated')})` : ''}`}
+              meta={[
+                { label: t('pdf.period'), value: period },
+                { label: t('pdf.currency'), value: currencyCode },
+              ]}
+            />
+            <PdfTable columns={columns} rows={rows} headerBand />
+            {signatures && <SignatureBlock labels={[t('pdf.preparedBy'), t('pdf.reviewedBy')]} />}
+          </ReportPage>
+        );
+      })}
+    </ReportDocument>
+  );
 }
 
 /** Detailed general ledger statement — كشف حساب الأستاذ. One section per account. */
@@ -120,12 +181,15 @@ function TSide({ items, label }: { items: Array<{ key: string; date: string; ref
 
 /**
  * Visual T-account — حساب على شكل T.
- * Debit (مدين) is always on the left and Credit (دائن) on the right, in both
- * languages, following the accounting convention.
+ * Debit (مدين) comes first in reading order: on the right in Arabic reports and
+ * on the left in English ones.
  */
 export function TAccountReport({ context, decimals, currencyCode, from, to, accounts, accountLabel, signatures }: LedgerReportInput) {
   const { t } = context;
   const title = t('pdf.tAccount.title');
+  const rtl = context.language === 'ar';
+  const sides = rtl ? ('row-reverse' as const) : ('row' as const);
+  const divider = rtl ? { borderLeftWidth: 1.6, borderLeftColor: colors.ink } : { borderRightWidth: 1.6, borderRightColor: colors.ink };
   const period = `${formatDate(from) || '…'} – ${formatDate(to) || '…'}`;
 
   return (
@@ -169,17 +233,17 @@ export function TAccountReport({ context, decimals, currencyCode, from, to, acco
               <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, lineHeight: 1.6 }}>{name}</Text>
               <Text style={{ textAlign: 'center', fontSize: 8.5, color: colors.muted, marginTop: 1, direction: 'ltr' } as never}>{account.code}</Text>
               {/* The "T": a heavy top rule and a vertical rule between the sides. */}
-              <View style={{ marginTop: 6, borderTopWidth: 1.6, borderTopColor: colors.ink, flexDirection: 'row' }}>
-                <View style={{ flex: 1, borderRightWidth: 1.6, borderRightColor: colors.ink, paddingTop: 5 }}>
+              <View style={{ marginTop: 6, borderTopWidth: 1.6, borderTopColor: colors.ink, flexDirection: sides }}>
+                <View style={{ flex: 1, paddingTop: 5, ...divider }}>
                   <TSide items={debitItems} label={t('ledger.debitSide')} />
                 </View>
                 <View style={{ flex: 1, paddingTop: 5 }}>
                   <TSide items={creditItems} label={t('ledger.creditSide')} />
                 </View>
               </View>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: sides }}>
                 {[0, 1].map((i) => (
-                  <View key={i} style={{ flex: 1, paddingHorizontal: 6, borderRightWidth: i === 0 ? 1.6 : 0, borderRightColor: colors.ink }}>
+                  <View key={i} style={{ flex: 1, paddingHorizontal: 6, ...(i === 0 ? divider : {}) }}>
                     <Text style={{ textAlign: 'right', direction: 'ltr', fontWeight: 700, paddingVertical: 3, borderTopWidth: 0.8, borderBottomWidth: 2, borderColor: colors.ink, marginTop: 2 } as never}>
                       {footing}
                     </Text>

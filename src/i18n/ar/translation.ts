@@ -176,6 +176,8 @@ export const ar = {
     },
   },
   ledger: {
+    dailyView: 'سجل الأستاذ', totalDebit: 'مجموع المدين', totalCredit: 'مجموع الدائن', debitBalance: 'الرصيد المدين', creditBalance: 'الرصيد الدائن',
+    previousBalance: 'الرصيد السابق', openDay: 'عرض تفاصيل هذا اليوم',
     selection: 'العرض', singleAccount: 'حساب واحد', accountRange: 'مدى حسابات', chooseAccount: 'اختر حساباً (ترحيل أو رئيسي)…',
     fromAccount: 'من الحساب', toAccount: 'إلى الحساب', selectPrompt: 'اختر حساباً', selectHint: 'اختر حساباً، أو حساباً رئيسياً لتجميع حساباته الفرعية، أو حدد مدى من الرموز.',
     noAccountsInRange: 'لا توجد حسابات ترحيل ضمن هذا المدى', tAccountView: 'حساب على شكل T', generalLedgerView: 'دفتر الأستاذ العام',
@@ -250,6 +252,7 @@ export const ar = {
       entry: { title: 'قيد يومية', description: 'قيد واحد بأسطره واعتماداته وحقول التوقيع. يُطبع من صفحة القيد.', action: 'فتح القيود اليومية' },
       voucher: { title: 'مستندات السندات', description: 'سندات القبض والصرف والقيد والتحويل مع المبلغ كتابةً والتواقيع.', action: 'فتح السندات' },
       voucherRegister: { title: 'سجل السندات', description: 'جميع السندات في فترة محددة حسب النوع والحالة، مع المجاميع وصافي المقبوضات بعد المدفوعات.', action: 'فتح السندات' },
+      dailyLedger: { title: 'سجل الأستاذ اليومي', description: 'سطر لكل يوم يضم مجموع المدين ومجموع الدائن والرصيد، مجمّعاً حسب الشهر.', action: 'فتح الأستاذ' },
       ledger: { title: 'كشف حساب الأستاذ', description: 'كشف الحساب مع رصيد أول المدة والحركات والرصيد المتحرك ورصيد آخر المدة.', action: 'فتح دفتر الأستاذ' },
       tAccount: { title: 'حساب على شكل T', description: 'حساب T مرئي، المدين على اليسار والدائن على اليمين مع الرصيد.', action: 'فتح دفتر الأستاذ' },
       trialBalance: { title: 'ميزان المراجعة', description: 'ميزان مراجعة إجمالي أو تفصيلي مع التحقق من التوازن.', action: 'فتح ميزان المراجعة' },
@@ -299,6 +302,7 @@ export const ar = {
     categoryRequired: 'تحتاج حسابات الترحيل إلى تصنيف.',
   },
   pdf: {
+    dailyLedger: { title: 'سجل الأستاذ' },
     generatedAt: 'تاريخ الإصدار {{date}}', generatedBy: 'بواسطة {{name}}', pageOf: 'صفحة {{page}} من {{total}}', period: 'الفترة', status: 'الحالة',
     entries: 'عدد القيود', currency: 'العملة', grandTotal: 'المجموع العام', noData: 'لا توجد بيانات للمعايير المحددة.', allDates: 'جميع التواريخ',
     taxNumber: 'الرقم الضريبي', preparedBy: 'أعدّه', reviewedBy: 'راجعه', approvedBy: 'اعتمده', accountant: 'المحاسب', manager: 'المدير',

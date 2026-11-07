@@ -331,7 +331,7 @@ export function AccountsPage() {
                     <td className="num border-b border-line py-2 ps-5">{a.code}</td>
                     <td className="border-b border-line px-3 py-2" style={{ paddingInlineStart: `${12 + depth * 18}px` }}>
                       <span>{name(a)}</span>
-                      <span lang={isRtl ? 'en' : 'ar'} className={clsx('ms-2 text-[12px] font-normal text-muted', !isRtl && 'font-ar')}>{isRtl ? a.name_en : a.name_ar}</span>
+                      {a.name_en !== a.name_ar && <span lang={isRtl ? 'en' : 'ar'} className={clsx('ms-2 text-[12px] font-normal text-muted', !isRtl && 'font-ar')}>{isRtl ? a.name_en : a.name_ar}</span>}
                     </td>
                     <td className="border-b border-line px-3 py-2 font-normal"><AccountTypeBadge type={a.account_type} /></td>
                     <td className="border-b border-line px-3 py-2 font-normal text-ink-soft">{a.category_code ? categoryName.get(a.category_code) : '—'}</td>

@@ -478,16 +478,16 @@ export function EntryFormPage() {
           <Button onClick={() => void onSubmit('draft')} loading={busyIntent === 'draft'} disabled={Boolean(busyIntent)}>
             {t('journal.saveDraft')}
           </Button>
-          {canSubmit && (requireApproval || !canPostDirectly) && (
-            <Button variant="primary" onClick={() => void onSubmit('submit')} loading={busyIntent === 'submit'} disabled={Boolean(busyIntent) || !summary.isBalanced}>
-              {t('journal.saveAndSubmit')}
-            </Button>
-          )}
-          {canPostDirectly && (
+          {/* One next step: post if this user may, otherwise send for approval. */}
+          {canPostDirectly ? (
             <Button variant="accent" onClick={() => void onSubmit('post')} loading={busyIntent === 'post'} disabled={Boolean(busyIntent) || !summary.isBalanced}>
               {t('journal.saveAndPost')}
             </Button>
-          )}
+          ) : canSubmit ? (
+            <Button variant="accent" onClick={() => void onSubmit('submit')} loading={busyIntent === 'submit'} disabled={Boolean(busyIntent) || !summary.isBalanced}>
+              {t('journal.saveAndSubmit')}
+            </Button>
+          ) : null}
         </div>
       </div>
     </form>
