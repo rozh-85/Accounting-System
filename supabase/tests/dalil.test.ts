@@ -85,7 +85,7 @@ describe('new companies', () => {
   });
 
   it('do not expose the chart and clearing helpers', async () => {
-    for (const fn of ['_clear_company_books', '_seed_default_chart', '_seed_dalil_chart', '_apply_dalil_english_names']) {
+    for (const fn of ['_clear_company_books', '_seed_default_chart', '_seed_dalil_chart']) {
       const args = fn === '_clear_company_books' ? [company, false] : [company];
       await expectDbError(rpc(db, owner, fn, args), /permission denied/);
     }
@@ -120,7 +120,7 @@ describe('removing the demo and clearing the books', () => {
   });
 
   it('drops the demo functions and flag', async () => {
-    const fns = await db.query(`select proname from pg_proc where proname in ('create_demo_company', 'delete_demo_company', '_demo_entry', '_demo_voucher', '_seed_demo_chart')`);
+    const fns = await db.query(`select proname from pg_proc where proname in ('create_demo_company', 'delete_demo_company', '_demo_entry', '_demo_voucher', '_seed_demo_chart', '_seed_demo_chart_arabic', '_apply_demo_chart_english')`);
     expect(fns.rows).toEqual([]);
     const column = await db.query(`select 1 from information_schema.columns where table_schema = 'public' and table_name = 'companies' and column_name = 'is_demo'`);
     expect(column.rows).toHaveLength(0);
@@ -167,5 +167,42 @@ describe('removing the demo and clearing the books', () => {
     expect(posted.rows[0].entry_number).toMatch(/0*1$/);
     // A posted entry is protected again.
     await expectDbError(db.query(`delete from public.journal_entries where id = $1`, [entry]), /.+/);
+  });
+});
+
+// The hosted database may have skipped some of the earlier demo files. The dalil
+// file must work from each of those states, and when run twice.
+describe.each([
+  ['the demo file only', '20261107000100'],
+  ['the Arabic dalil demo, without English names', '20261107000200'],
+  ['every earlier file', DALIL_MIGRATION],
+])('a database that ran %s', (_label, before) => {
+  let db: PGlite;
+  let owner: TestUser;
+  let real: string;
+
+  beforeAll(async () => {
+    db = await createTestDatabase(before);
+    owner = await createUser(db, 'Owner');
+    real = await rpc<string>(db, owner, 'create_company', ['Real Co', 'شركة حقيقية', 'IQD', '2026-01-01', true]);
+    await rpc(db, owner, 'create_demo_company');
+    await runMigrations(db, (f) => f === DALIL_MIGRATION);
+    await runMigrations(db, (f) => f === DALIL_MIGRATION);
+    await db.exec(clearScript);
+  }, 180_000);
+
+  it('ends with only the real company, on the dalil', async () => {
+    const companies = await db.query<{ id: string }>(`select id from public.companies`);
+    expect(companies.rows.map((r) => r.id)).toEqual([real]);
+    expect(await count(db, 'accounts', real)).toBe(731);
+    expect(await count(db, 'journal_entries', real)).toBe(0);
+    const english = await db.query(`select 1 from public.accounts where company_id = $1 and name_en = name_ar`, [real]);
+    expect(english.rows).toHaveLength(0);
+    expect(await disabledTriggers(db)).toBe(0);
+  });
+
+  it('gives a new company the dalil', async () => {
+    const company = await rpc<string>(db, owner, 'create_company', ['New Co', 'شركة جديدة', 'IQD', '2026-01-01', true]);
+    expect(await count(db, 'accounts', company)).toBe(731);
   });
 });
