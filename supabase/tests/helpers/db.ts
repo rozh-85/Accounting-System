@@ -59,10 +59,17 @@ grant select, insert, delete on storage.objects to authenticated;
 grant execute on function storage.foldername(text) to authenticated;
 `;
 
-export async function createTestDatabase(): Promise<PGlite> {
+/** Runs every migration, or with `before` only those sorting before that name. */
+export async function createTestDatabase(before?: string): Promise<PGlite> {
   const db = new PGlite();
   await db.exec(SUPABASE_SHIM);
-  const files = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
+  await runMigrations(db, (f) => !before || f < before);
+  return db;
+}
+
+/** Runs the migrations a filter selects, in order. */
+export async function runMigrations(db: PGlite, include: (file: string) => boolean): Promise<void> {
+  const files = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql') && include(f)).sort();
   for (const file of files) {
     const sql = readFileSync(join(migrationsDir, file), 'utf8');
     try {
@@ -71,7 +78,6 @@ export async function createTestDatabase(): Promise<PGlite> {
       throw new Error(`Migration ${file} failed: ${(error as Error).message}`);
     }
   }
-  return db;
 }
 
 export interface TestUser {

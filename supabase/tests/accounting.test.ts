@@ -45,6 +45,32 @@ async function balances(from: string | null, to: string | null, mode = 'all') {
   });
 }
 
+/**
+ * The tests name accounts by their role (cash 1110, capital 3100, ...); this maps
+ * each role to the dalil account that new companies get.
+ */
+const DALIL: Record<string, string> = {
+  '1000': '1',      // Assets (header)
+  '1110': '1811',   // Head office cash box
+  '1120': '1832',   // Private banks
+  '1130': '16141',  // Debtors, private sector
+  '1140': '1371',   // Goods held for sale
+  '1220': '1161',   // Furniture
+  '1290': '2316',   // Accumulated depreciation, furniture
+  '2110': '2614',   // Suppliers, private sector
+  '2120': '2421',   // Short-term loans
+  '2210': '2411',   // Long-term loans
+  '3100': '211',    // Paid-up capital
+  '3200': '224',    // Accumulated surplus (retained earnings)
+  '3300': '225',    // Accumulated deficit (debit equity)
+  '4100': '42111',  // Sales
+  '4200': '4371',   // Cleaning services revenue
+  '5100': '3511',   // Local purchases for sale
+  '5200': '3111',   // Salaries
+  '5300': '3352',   // Rent of buildings
+  '5500': '376',    // Depreciation of furniture
+};
+
 async function netOf(code: string, to: string | null = null) {
   const rows = await balances(null, to);
   const row = rows.find((r) => r.account_id === acc[code]);
@@ -68,8 +94,8 @@ beforeAll(async () => {
   await rpc(db, admin, 'add_company_member', [company, reviewer.email, 'reviewer']);
   await rpc(db, admin, 'add_company_member', [company, viewer.email, 'viewer']);
 
-  for (const code of ['1000', '1110', '1120', '1130', '1140', '1220', '1290', '2110', '2120', '2210', '3100', '3200', '3300', '4100', '4200', '5100', '5200', '5300', '5500']) {
-    acc[code] = await accountId(db, company, code);
+  for (const [key, code] of Object.entries(DALIL)) {
+    acc[key] = await accountId(db, company, code);
   }
 });
 
@@ -77,8 +103,8 @@ describe('company bootstrap', () => {
   it('creates a fiscal year with 12 open monthly periods and a bilingual chart', async () => {
     const periods = await db.query<{ n: number }>(`select count(*)::int as n from accounting_periods where company_id = $1 and status = 'open'`, [company]);
     expect(periods.rows[0].n).toBe(12);
-    const chart = await db.query<{ name_ar: string }>(`select name_ar from accounts where company_id = $1 and code = '1110'`, [company]);
-    expect(chart.rows[0].name_ar).toBe('الصندوق');
+    const chart = await db.query<{ name_ar: string }>(`select name_ar from accounts where company_id = $1 and code = '1811'`, [company]);
+    expect(chart.rows[0].name_ar).toBe('صندوق المركز');
   });
 });
 
@@ -454,22 +480,22 @@ describe('chart of accounts integrity', () => {
   });
 
   it('enforces hierarchy rules', async () => {
-    const currentAssets = await accountId(db, company, '1100');
+    const currentAssets = await accountId(db, company, '181');
     await expectDbError(
       asUser(db, admin, (tx) => tx.query(
-        `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '1111', 'Petty cash', 'السلفة النثرية', $2, 'asset', 'cash', 'debit')`,
+        `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '18111', 'Petty cash', 'السلفة النثرية', $2, 'asset', 'cash', 'debit')`,
         [company, acc['1110']])),
       'ACCOUNT_PARENT_IS_POSTING');
     await expectDbError(
       asUser(db, admin, (tx) => tx.query(
-        `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '1160', 'Wrong', 'خطأ', $2, 'liability', 'payables', 'credit')`,
+        `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '1814', 'Wrong', 'خطأ', $2, 'liability', 'payables', 'credit')`,
         [company, currentAssets])),
       'ACCOUNT_TYPE_MISMATCH');
     await asUser(db, accountant, (tx) => tx.query(
-      `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '1160', 'Petty Cash', 'السلفة النثرية', $2, 'asset', 'cash', 'debit')`,
+      `insert into accounts (company_id, code, name_en, name_ar, parent_id, account_type, category_code, normal_balance) values ($1, '1814', 'Petty Cash', 'السلفة النثرية', $2, 'asset', 'cash', 'debit')`,
       [company, currentAssets]));
-    const created = await db.query<{ level: number; created_by: string }>(`select level, created_by from accounts where company_id = $1 and code = '1160'`, [company]);
-    expect(created.rows[0].level).toBe(3);
+    const created = await db.query<{ level: number; created_by: string }>(`select level, created_by from accounts where company_id = $1 and code = '1814'`, [company]);
+    expect(created.rows[0].level).toBe(4);
     expect(created.rows[0].created_by).toBe(accountant.id);
   });
 });

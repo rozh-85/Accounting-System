@@ -28,12 +28,6 @@ export const en = {
       audit: 'Every change, by whom and when', settings: 'Company, users and layout',
     },
   },
-  demo: {
-    label: 'Demo data', hint: 'On: opens a separate demo company full of sample data. Off: deletes that company. Your real books are never touched.',
-    turnOn: 'Turn on demo data', turnOff: 'Turn off demo', onToast: 'Demo company is on. Your real books are not affected.', offToast: 'Demo data deleted.',
-    bannerTitle: 'Demo company.', bannerBody: 'Everything here is sample data. Your real books are not affected, and turning this off deletes it all.',
-    notInstalled: 'Demo data needs one database update. Run the demo SQL in Supabase first.',
-  },
   dashboard: {
     room: 'Room', subtitle: 'Fiscal year {{year}} · Current period {{period}}', noPeriod: 'No accounting period covers today',
     newReceipt: 'Receipt voucher', newPayment: 'Payment voucher',
@@ -70,9 +64,9 @@ export const en = {
     panelFooter: 'Vio — Special to your home',
   },
   onboarding: {
-    title: 'Set up your company', subtitle: 'Creates the company, a fiscal year with monthly periods and a standard bilingual chart of accounts. You become its administrator.',
+    title: 'Set up your company', subtitle: 'Creates the company, a fiscal year with monthly periods and the Kurdistan chart of accounts (dalil, 731 accounts). You become its administrator.',
     nameEn: 'Company name (English)', nameAr: 'Company name (Arabic)', baseCurrency: 'Base currency', baseCurrencyHint: 'All entries are recorded in this currency.',
-    fiscalYearStart: 'Fiscal year starts', seedChart: 'Create the standard chart of accounts', create: 'Create company',
+    fiscalYearStart: 'Fiscal year starts', seedChart: 'Create the Kurdistan chart of accounts (dalil)', create: 'Create company',
     invitedHint: 'Joining an existing company? Ask its administrator to add {{email}} under Settings → Users.',
   },
   currencies: { IQD: 'Iraqi Dinar', USD: 'US Dollar', EUR: 'Euro' },

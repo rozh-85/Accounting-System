@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { Building2, ChevronDown, ChevronRight, FlaskConical, LogOut, Menu as MenuIcon, PanelLeftOpen, Settings } from 'lucide-react';
+import { Building2, ChevronDown, ChevronRight, LogOut, Menu as MenuIcon, PanelLeftOpen, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -10,8 +10,6 @@ import { useDashboardSummary } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatPeriodName } from '@/lib/formatting';
 import type { NavigationMode } from '@/features/dashboard/navigation';
-import { DemoSwitch } from '@/features/demo/DemoSwitch';
-import { useDemoMode } from '@/features/demo/useDemoMode';
 import { LanguageSwitcher, Logo } from './Brand';
 
 function initials(name: string) {
@@ -54,7 +52,6 @@ export function AppHeader({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const period = summary.data?.current_period;
-  const demo = useDemoMode();
   const displayName = profile?.full_name || user?.email || '';
 
   const page = PAGE_TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -111,8 +108,6 @@ export function AppHeader({
           </Link>
         )}
 
-        <DemoSwitch className="hidden lg:inline-flex" />
-
         <LanguageSwitcher />
 
         <IconButton label={t('nav.settings')} onClick={() => navigate('/settings')} className="hidden border border-line sm:inline-flex">
@@ -145,7 +140,6 @@ export function AppHeader({
                 icon: <Building2 size={15} />,
                 onSelect: () => void switchCompany(c.id),
               })),
-            { label: demo.enabled ? t('demo.turnOff') : t('demo.turnOn'), icon: <FlaskConical size={15} />, disabled: demo.busy, onSelect: demo.toggle },
             { label: t('nav.newCompany'), icon: <Building2 size={15} />, onSelect: () => navigate('/onboarding') },
             { label: t('nav.settings'), icon: <Settings size={15} />, onSelect: () => navigate('/settings') },
             {

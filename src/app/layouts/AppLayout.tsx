@@ -6,7 +6,6 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useNavigationMode } from '@/features/dashboard/navigation';
-import { DemoBanner } from '@/features/demo/DemoSwitch';
 
 const COLLAPSE_KEY = 'vio.sidebarCollapsed';
 
@@ -90,7 +89,6 @@ export function AppLayout() {
         <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto w-full max-w-[2800px]">
             {!withSidebar && pathname !== '/' && <BackToRooms />}
-            <DemoBanner />
             <Outlet />
           </div>
         </main>

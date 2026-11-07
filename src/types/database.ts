@@ -37,8 +37,6 @@ export interface Currency {
 
 export interface Company {
   id: string;
-  /** Sandbox company of sample data; see the demo switch. */
-  is_demo?: boolean;
   name_en: string;
   name_ar: string;
   legal_name: string | null;

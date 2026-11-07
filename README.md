@@ -35,7 +35,7 @@ Supporting modules: Chart of Accounts (دليل الحسابات), Accounting Pe
 
 **PDF reporting engine** — A4 portrait/landscape reports in Arabic or English with embedded IBM Plex fonts (proper Arabic shaping and RTL), company letterhead, repeated table headers, page numbers, timestamps and optional signature fields: daily journal, journal entry, vouchers (with amount in words), voucher register, ledger statement, T-account, trial balance and statement of financial position.
 
-**Demo data** — the top-bar switch opens a separate demo company on the 731-account Kurdistan chart with a year of sample transactions, and switching it off deletes that company. Sample data never enters a real company; `delete_demo_company` refuses any company not flagged `is_demo`.
+**Chart of accounts** — every company starts on the 731-account Kurdistan chart (دلیل الحسابات, Iraqi unified system) with Arabic and English names. Class 2 mixes liabilities with capital and reserves, so 21 and 22 are equity roots of their own and 231 (accumulated depreciation) is a contra-asset; 224 is the retained earnings account.
 
 ---
 
@@ -132,7 +132,7 @@ Only the public anon key belongs in the browser. Never put the service-role key 
 ```bash
 npm run dev
 ```
-Open http://localhost:5173, create an account, then **Create company**. This creates the company, makes you its administrator, opens a fiscal year with twelve monthly periods and installs a standard bilingual chart of accounts (1000 Assets … 5900 Other Expenses). Invite colleagues after they sign up from **Settings → Users and roles**.
+Open http://localhost:5173, create an account, then **Create company**. This creates the company, makes you its administrator, opens a fiscal year with twelve monthly periods and installs the Kurdistan chart of accounts (1 Assets … 4 Revenue, 731 accounts). Invite colleagues after they sign up from **Settings → Users and roles**.
 
 ---
 
@@ -157,7 +157,7 @@ npm run test:db     # database rules, RLS and permissions on PGlite
 3. **Vercel:** import the GitHub repository; `vercel.json` sets the Vite build, `dist` output and SPA rewrites. The public Supabase URL and publishable key ship in `.env.production`; project environment variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` override them if set.
 
 ### Updating an existing database
-Run new files from `supabase/migrations` in order in the SQL Editor; `setup.sql` is only for a fresh project. `20261106000100_demo_company.sql` adds the demo data switch and `20261107000100_demo_chart_of_accounts.sql` moves it to the Kurdistan chart, and `20261107000200_demo_chart_english_names.sql` adds its English account names.
+Run new files from `supabase/migrations` in order in the SQL Editor; `setup.sql` is only for a fresh project. `20261107000300_dalil_for_every_company.sql` removes the old demo data and makes the dalil the chart of new companies. `supabase/scripts/clear_books_keep_dalil.sql` is a one-off: it permanently deletes all entries, vouchers, templates, attachments and audit history of every company and replaces their charts with the dalil.
 
 ### General
 

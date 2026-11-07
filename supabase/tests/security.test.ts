@@ -33,8 +33,8 @@ beforeAll(async () => {
   await rpc(db, ownerA, 'add_company_member', [companyA, reviewerA.email, 'reviewer']);
   await rpc(db, ownerA, 'add_company_member', [companyA, viewerA.email, 'viewer']);
 
-  cashA = await accountId(db, companyA, '1110');
-  capitalA = await accountId(db, companyA, '3100');
+  cashA = await accountId(db, companyA, '1811');
+  capitalA = await accountId(db, companyA, '211');
   entryA = await rpc<string>(db, ownerA, 'save_journal_entry', [
     companyA, null, j(header('2026-01-10', 'Capital A')), j([line(cashA, 500_000, 0), line(capitalA, 0, 500_000)]),
   ]);
@@ -65,7 +65,7 @@ describe('company isolation (RLS)', () => {
       rpc(db, ownerB, 'save_journal_entry', [companyA, null, j(header('2026-01-11', 'Intrusion')), j([line(cashA, 1, 0), line(capitalA, 0, 1)])]),
       'PERMISSION_DENIED',
     );
-    const cashB = await accountId(db, companyB, '1110');
+    const cashB = await accountId(db, companyB, '1811');
     // Company B cannot reference company A accounts in its own entries either.
     await expectDbError(
       rpc(db, ownerB, 'save_journal_entry', [companyB, null, j(header('2026-01-11', 'Cross-company')), j([line(cashB, 1, 0), line(capitalA, 0, 1)])]),
