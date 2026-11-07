@@ -70,6 +70,37 @@ describe('demo company', () => {
     expect(byCode['4211'].is_posting).toBe(false);
   });
 
+  it('has an English name for every account', async () => {
+    const left = await db.query(`select code from public.accounts where company_id = $1 and (name_en = name_ar or name_en ~ '[\u0600-\u06FF]')`, [demo]);
+    expect(left.rows).toEqual([]);
+    const names = await db.query<{ code: string; name_en: string; name_ar: string }>(
+      `select code, name_en, name_ar from public.accounts where company_id = $1 and code in ('1811', '231', '42111')`,
+      [demo],
+    );
+    const byCode = Object.fromEntries(names.rows.map((r) => [r.code, r]));
+    expect(byCode['1811'].name_en).toBe('Head Office Cash Box');
+    expect(byCode['1811'].name_ar).toBe('صندوق المركز');
+    expect(byCode['231'].name_en).toBe('Accumulated Depreciation Provision');
+    expect(byCode['42111'].name_en).toBe('Sales');
+  });
+
+  it('adds English names to a demo company created before them, keeping edited names', async () => {
+    const accounts = await db.query<{ id: string; code: string }>(`select id, code from public.accounts where company_id = $1 and code in ('1811', '1812')`, [demo]);
+    const id = (code: string) => accounts.rows.find((r) => r.code === code)!.id;
+    await db.exec(`alter table public.accounts disable trigger user`);
+    await db.query(`update public.accounts set name_en = name_ar where id = $1`, [id('1811')]);
+    await db.query(`update public.accounts set name_en = 'Our own name' where id = $1`, [id('1812')]);
+    await db.exec(`alter table public.accounts enable trigger user`);
+
+    await db.query(`select public._apply_demo_chart_english($1)`, [demo]);
+
+    const after = await db.query<{ code: string; name_en: string }>(`select code, name_en from public.accounts where id = any($1::uuid[])`, [[id('1811'), id('1812')]]);
+    const names = Object.fromEntries(after.rows.map((r) => [r.code, r.name_en]));
+    expect(names['1811']).toBe('Head Office Cash Box');
+    expect(names['1812']).toBe('Our own name');
+    await expectDbError(rpc(db, owner, '_apply_demo_chart_english', [demo]), /permission denied/);
+  });
+
   it('chart passes the rules the account trigger normally enforces', async () => {
     const broken = await db.query(
       `select c.code

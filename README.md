@@ -157,7 +157,7 @@ npm run test:db     # database rules, RLS and permissions on PGlite
 3. **Vercel:** import the GitHub repository; `vercel.json` sets the Vite build, `dist` output and SPA rewrites. The public Supabase URL and publishable key ship in `.env.production`; project environment variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` override them if set.
 
 ### Updating an existing database
-Run new files from `supabase/migrations` in order in the SQL Editor; `setup.sql` is only for a fresh project. `20261106000100_demo_company.sql` adds the demo data switch and `20261107000100_demo_chart_of_accounts.sql` moves it to the Kurdistan chart.
+Run new files from `supabase/migrations` in order in the SQL Editor; `setup.sql` is only for a fresh project. `20261106000100_demo_company.sql` adds the demo data switch and `20261107000100_demo_chart_of_accounts.sql` moves it to the Kurdistan chart, and `20261107000200_demo_chart_english_names.sql` adds its English account names.
 
 ### General
 
