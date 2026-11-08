@@ -4,7 +4,7 @@
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { PGlite } from '@electric-sql/pglite';
-import { accountId, asUser, createTestDatabase, createUser, expectDbError, header, line, rpc, type TestUser } from './helpers/db';
+import { accountId, asUser, createTestDatabase, createUser, expectDbError, header, line, rpc, runMigrations, type TestUser } from './helpers/db';
 
 const j = (value: unknown) => JSON.stringify(value);
 
@@ -222,6 +222,56 @@ describe('dates outside every fiscal year', () => {
     const id = await save(admin, header('1926-03-01', 'Typo'), [line(rent, 1, 0), line(cash, 0, 1)]);
     await expectDbError(rpc(db, admin, 'post_journal_entry', [id]), 'PERIOD_MISSING');
   });
+});
+
+describe('entry numbers', () => {
+  const number = async (id: string) => (await get(id)).entry_number as string;
+
+  it('gives a deleted latest number to the next entry', async () => {
+    const first = await save(admin, header('2023-05-01', 'One'), [line(rent, 1, 0), line(cash, 0, 1)]);
+    const second = await save(admin, header('2023-05-02', 'Two'), [line(rent, 1, 0), line(cash, 0, 1)]);
+    expect(await number(first)).toBe('JE-2023-00001');
+    expect(await number(second)).toBe('JE-2023-00002');
+    await rpc(db, admin, 'delete_journal_entry', [second]);
+    const third = await save(admin, header('2023-05-03', 'Three'), [line(rent, 1, 0), line(cash, 0, 1)]);
+    expect(await number(third)).toBe('JE-2023-00002');
+  });
+
+  it('starts every year at 1 and numbers vouchers the same way', async () => {
+    const entry = await save(admin, header('2022-01-10', 'New year'), [line(rent, 1, 0), line(cash, 0, 1)]);
+    expect(await number(entry)).toBe('JE-2022-00001');
+    const make = () => rpc<string>(db, admin, 'save_voucher', [company, null, j({ voucher_type: 'receipt', voucher_date: '2022-02-01', party_name: 'Guest', cash_account_id: cash, counter_account_id: capital, amount: 5, description: 'Receipt' }), j([])]);
+    const voucherNumber = async (id: string) => (await db.query<{ voucher_number: string }>(`select voucher_number from public.vouchers where id = $1`, [id])).rows[0].voucher_number;
+    const one = await make();
+    expect(await voucherNumber(one)).toMatch(/-2022-00001$/);
+    await rpc(db, admin, 'delete_voucher', [one]);
+    expect(await voucherNumber(await make())).toMatch(/-2022-00001$/);
+  });
+
+  it('closes old gaps when the update runs, and keeps a reversal pointing at its entry', async () => {
+    const file = '20261108000100_edit_posted_dollars_and_periods.sql';
+    const old = await createTestDatabase(file);
+    const user = await createUser(old, 'Owner');
+    const c = await rpc<string>(old, user, 'create_company', ['Old', 'قديم', 'IQD', '2026-01-01', true]);
+    const dr = await accountId(old, c, '3352');
+    const cr = await accountId(old, c, '1811');
+    const make = (date: string) => rpc<string>(old, user, 'save_journal_entry', [c, null, j(header(date, 'x')), j([line(dr, 1, 0), line(cr, 0, 1)])]);
+    const gone = await make('2026-02-01');
+    const kept = await make('2026-02-02');
+    await rpc(old, user, 'post_journal_entry', [kept]);
+    const reversal = await rpc<string>(old, user, 'reverse_journal_entry', [kept, '2026-02-03', 'Mistake']);
+    await rpc(old, user, 'delete_journal_entry', [gone]);
+
+    await runMigrations(old, (f) => f >= file);
+
+    const rows = await old.query<{ id: string; entry_number: string; reference_number: string | null }>(`select id, entry_number, reference_number from public.journal_entries where company_id = $1 order by entry_number`, [c]);
+    expect(rows.rows.map((r) => r.entry_number)).toEqual(['JE-2026-00001', 'JE-2026-00002']);
+    expect(rows.rows[0].id).toBe(kept);
+    expect(rows.rows[1].id).toBe(reversal);
+    expect(rows.rows[1].reference_number).toBe('JE-2026-00001');
+    const off = await old.query(`select 1 from pg_trigger where tgrelid = 'public.journal_entries'::regclass and tgenabled = 'D' and not tgisinternal`);
+    expect(off.rows).toHaveLength(0);
+  }, 120_000);
 });
 
 describe('internal helpers', () => {

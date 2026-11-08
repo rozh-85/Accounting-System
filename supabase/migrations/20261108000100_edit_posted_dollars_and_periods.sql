@@ -11,6 +11,8 @@
 --    "base currency per 1 unit of foreign_currency".
 -- 3. An entry dated outside every fiscal year no longer fails: the missing year
 --    and its monthly periods are opened automatically when it is posted.
+-- 4. Document numbers follow the highest number in use, so deleting the latest
+--    document frees its number, and existing gaps in entry numbers are closed.
 -- =============================================================================
 
 alter table public.journal_entries
@@ -519,5 +521,80 @@ begin
     'attachments', public._entity_attachments('journal_entry', e.id),
     'history', public._entity_history('journal_entry', e.id)
   );
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Document numbers: next after the highest in use
+-- ---------------------------------------------------------------------------
+create or replace function public._next_document_number(p_company_id uuid, p_doc_type text, p_date date)
+returns text
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  v_year int := extract(year from p_date)::int;
+  v_prefix text := p_doc_type || '-' || v_year::text || '-';
+  v_highest bigint;
+  v_value bigint;
+begin
+  -- The row lock makes two people saving at once take turns.
+  insert into public.document_sequences as s (company_id, doc_type, year, next_value)
+  values (p_company_id, p_doc_type, v_year, 1)
+  on conflict (company_id, doc_type, year)
+  do update set next_value = s.next_value;
+
+  if p_doc_type = 'JE' then
+    select max(substring(e.entry_number from length(v_prefix) + 1)::bigint) into v_highest
+      from public.journal_entries e
+     where e.company_id = p_company_id and e.entry_number ~ ('^' || v_prefix || '[0-9]+$');
+  else
+    select max(substring(x.voucher_number from length(v_prefix) + 1)::bigint) into v_highest
+      from public.vouchers x
+     where x.company_id = p_company_id and x.voucher_number ~ ('^' || v_prefix || '[0-9]+$');
+  end if;
+
+  v_value := coalesce(v_highest, 0) + 1;
+  update public.document_sequences s
+     set next_value = v_value + 1
+   where s.company_id = p_company_id and s.doc_type = p_doc_type and s.year = v_year;
+
+  return v_prefix || lpad(v_value::text, 5, '0');
+end;
+$$;
+
+-- One-time: close the gaps deleted entries left, keeping the order. Each entry
+-- only ever moves down into a number already freed.
+do $$
+declare
+  r record;
+  v_group text := '';
+  v_count int := 0;
+  v_new text;
+begin
+  alter table public.journal_entries disable trigger user;
+
+  for r in
+    select e.id, e.company_id, e.entry_number, substring(e.entry_number from 4 for 4) as year_text
+      from public.journal_entries e
+     where e.entry_number ~ '^JE-[0-9]{4}-[0-9]+$'
+     order by e.company_id, 4, substring(e.entry_number from 9)::bigint
+  loop
+    if v_group <> r.company_id::text || r.year_text then
+      v_group := r.company_id::text || r.year_text;
+      v_count := 0;
+    end if;
+    v_count := v_count + 1;
+    v_new := 'JE-' || r.year_text || '-' || lpad(v_count::text, 5, '0');
+    if v_new <> r.entry_number then
+      update public.journal_entries e set entry_number = v_new where e.id = r.id;
+      -- A reversal quotes the number of the entry it reverses.
+      update public.journal_entries e
+         set reference_number = v_new
+       where e.reversal_of_id = r.id and e.reference_number = r.entry_number;
+    end if;
+  end loop;
+
+  alter table public.journal_entries enable trigger user;
 end;
 $$;
