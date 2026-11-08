@@ -84,7 +84,7 @@ export const ar = {
   voucherTypes: { receipt: 'سند قبض', payment: 'سند صرف', journal: 'سند قيد', transfer: 'سند تحويل' },
   status: { draft: 'مسودة', pending_approval: 'بانتظار الاعتماد', posted: 'مرحّل', reversed: 'معكوس' },
   paymentMethods: { cash: 'نقداً', bank_transfer: 'حوالة مصرفية', cheque: 'صك', card: 'بطاقة', other: 'أخرى' },
-  accountPicker: { placeholder: 'ابحث برمز الحساب أو اسمه…', noResults: 'لا توجد حسابات ترحيل مطابقة' },
+  accountPicker: { groupHint: 'هذا حساب تجميعي ولا تُسجَّل عليه قيود. اختر أحد الحسابات التابعة له.', placeholder: 'ابحث برمز الحساب أو اسمه…', noResults: 'لا توجد حسابات ترحيل مطابقة' },
   table: { showing: '{{from}}–{{to}} من {{total}}', previous: 'الصفحة السابقة', next: 'الصفحة التالية' },
   journal: {
     tabs: { entries: 'قيود اليومية', vouchers: 'السندات', recurring: 'القيود المتكررة' },

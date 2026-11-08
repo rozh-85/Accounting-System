@@ -84,7 +84,7 @@ export const en = {
   voucherTypes: { receipt: 'Receipt voucher', payment: 'Payment voucher', journal: 'Journal voucher', transfer: 'Transfer voucher' },
   status: { draft: 'Draft', pending_approval: 'Pending approval', posted: 'Posted', reversed: 'Reversed' },
   paymentMethods: { cash: 'Cash', bank_transfer: 'Bank transfer', cheque: 'Cheque', card: 'Card', other: 'Other' },
-  accountPicker: { placeholder: 'Search by code or name…', noResults: 'No matching posting accounts' },
+  accountPicker: { groupHint: 'This is a group account and cannot take entries. Choose one of its accounts.', placeholder: 'Search by code or name…', noResults: 'No matching posting accounts' },
   table: { showing: '{{from}}–{{to}} of {{total}}', previous: 'Previous page', next: 'Next page' },
   journal: {
     tabs: { entries: 'Journal entries', vouchers: 'Vouchers', recurring: 'Recurring entries' },

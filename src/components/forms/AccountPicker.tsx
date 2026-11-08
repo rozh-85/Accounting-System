@@ -93,6 +93,19 @@ export function AccountPicker({
     setQuery('');
   };
 
+  // A group cannot take entries: open it, or take its account if it has only one.
+  const openGroup = (group: Account) => {
+    const under = accounts.filter((a) => a.code !== group.code && a.code.startsWith(group.code) && filter(a));
+    if (under.length === 1) {
+      choose(under[0]);
+      return;
+    }
+    setQuery(group.code);
+    setActive(0);
+    listRef.current?.scrollTo({ top: 0 });
+  };
+  const insideGroup = rows.some((a) => a.code === query.trim() && !optionIndex.has(a.id));
+
   const label = selected ? `${selected.code} · ${name(selected)}` : '';
 
   return (
@@ -152,11 +165,24 @@ export function AccountPicker({
           className="absolute z-30 mt-1 max-h-[280px] w-full min-w-[300px] overflow-y-auto rounded-[10px] border border-line bg-surface py-1 shadow-[var(--shadow-pop)] scrollbar-thin"
         >
           {rows.length === 0 && <li className="px-3 py-2.5 text-[13px] text-muted">{t('accountPicker.noResults')}</li>}
+          {insideGroup && (
+            <li role="presentation" className="px-3 pb-1.5 pt-1 text-[12px] leading-snug text-accent-strong">
+              {t('accountPicker.groupHint')}
+            </li>
+          )}
           {rows.map((account) => {
             const index = optionIndex.get(account.id);
             if (index === undefined) {
               return (
-                <li key={account.id} role="presentation" className="flex items-baseline gap-3 bg-subtle/70 px-3 py-1.5 text-[12px] font-semibold text-muted">
+                <li
+                  key={account.id}
+                  role="presentation"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    openGroup(account);
+                  }}
+                  className="flex cursor-pointer items-baseline gap-3 bg-subtle/70 px-3 py-1.5 text-[12px] font-semibold text-muted hover:bg-hover hover:text-ink"
+                >
                   <span className="num w-14 shrink-0">{account.code}</span>
                   <span className="min-w-0 flex-1 truncate">{name(account)}</span>
                 </li>
