@@ -77,7 +77,7 @@ export function AccountPicker({
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) leaveRef.current();
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
@@ -106,10 +106,31 @@ export function AccountPicker({
   };
   const insideGroup = rows.some((a) => a.code === query.trim() && !optionIndex.has(a.id));
 
+  // Leaving with typed text must not lose it: take the account it clearly means,
+  // go back to the current account, or keep the text and say nothing is chosen yet.
+  const leave = () => {
+    setOpen(false);
+    const q = normalizeSearch(query);
+    if (!q) return;
+    const meant = options.find((a) => a.code.toLowerCase() === q) ?? (options.length === 1 ? options[0] : undefined);
+    if (meant) {
+      onChange(meant.id);
+      setQuery('');
+    } else if (value) {
+      setQuery('');
+    }
+  };
+  const leaveRef = useRef(leave);
+  useEffect(() => {
+    leaveRef.current = leave;
+  });
+  const notChosen = !open && Boolean(query.trim());
+
   const label = selected ? `${selected.code} · ${name(selected)}` : '';
 
   return (
     <div ref={wrapperRef} className={clsx('relative', className)}>
+      <div className="relative">
       <input
         id={id}
         type="text"
@@ -118,15 +139,14 @@ export function AccountPicker({
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={open && options[active] ? `${listId}-${active}` : undefined}
-        aria-invalid={invalid || undefined}
+        aria-invalid={invalid || notChosen || undefined}
         autoComplete="off"
         disabled={disabled}
         placeholder={placeholder ?? t('accountPicker.placeholder')}
-        value={open ? query : label}
+        value={open || notChosen ? query : label}
         title={label}
         onFocus={() => {
           setOpen(true);
-          setQuery('');
           setActive(0);
         }}
         onChange={(e) => {
@@ -149,14 +169,17 @@ export function AccountPicker({
             }
           } else if (e.key === 'Escape') {
             setOpen(false);
+            setQuery('');
           } else if (e.key === 'Tab') {
-            setOpen(false);
+            leave();
           }
         }}
         className={clsx(controlClass, 'h-9 truncate pe-8')}
         {...aria}
       />
       <ChevronsUpDown size={14} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+      </div>
+      {notChosen && <p className="mt-1 text-[11.5px] text-danger">{t('accountPicker.notChosen')}</p>}
       {open && !disabled && (
         <ul
           ref={listRef}
