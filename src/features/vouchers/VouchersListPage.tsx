@@ -1,13 +1,14 @@
-import { FileDown, FileSpreadsheet, Plus, Search, X } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
+import { FilterBar } from '@/components/tables/FilterBar';
 import { Pagination, Table, Td, Th, THead, Tr } from '@/components/tables/Table';
 import { StatusBadge, VoucherTypeBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
-import { Input, Select } from '@/components/ui/Field';
+import { Select } from '@/components/ui/Field';
 import { Menu } from '@/components/ui/Menu';
 import { PageLoader } from '@/components/ui/Spinner';
 import { Segmented } from '@/components/ui/Tabs';
@@ -117,47 +118,29 @@ export function VouchersListPage() {
         </div>
       </div>
 
-      <Card className="mb-4 px-4 py-3">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <form
-            className="col-span-2 flex flex-col gap-1 text-[12px] text-muted md:col-span-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setFilters({ search: searchText.trim() });
-            }}
-          >
-            {t('common.search')}
-            <div className="relative">
-              <Search size={14} className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-faint" />
-              <Input type="search" className="h-8 ps-8" value={searchText} placeholder={t('vouchers.searchPlaceholder')} onChange={(e) => setSearchText(e.target.value)} onBlur={() => searchText.trim() !== filters.search && setFilters({ search: searchText.trim() })} />
-            </div>
-          </form>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.from')}
-            <Input type="date" className="num h-8" value={filters.from} onChange={(e) => setFilters({ from: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.to')}
-            <Input type="date" className="num h-8" value={filters.to} onChange={(e) => setFilters({ to: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.status')}
-            <Select className="h-8" value={filters.status} onChange={(e) => setFilters({ status: e.target.value as VoucherStatus | '' })}>
-              <option value="">{t('common.all')}</option>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>{t(`status.${s}`)}</option>
-              ))}
-            </Select>
-          </label>
-        </div>
-        {hasFilters && (
-          <div className="mt-2 flex justify-end">
-            <Button size="sm" variant="ghost" icon={<X size={14} />} onClick={() => { setSearchText(''); setParams(new URLSearchParams(), { replace: true }); }}>
-              {t('common.clearFilters')}
-            </Button>
-          </div>
-        )}
-      </Card>
+      <FilterBar
+        search={searchText}
+        onSearchChange={setSearchText}
+        onSearchCommit={() => searchText.trim() !== filters.search && setFilters({ search: searchText.trim() })}
+        searchPlaceholder={t('vouchers.searchPlaceholder')}
+        from={filters.from}
+        to={filters.to}
+        onFromChange={(from) => setFilters({ from })}
+        onToChange={(to) => setFilters({ to })}
+        primary={
+          <Select aria-label={t('journal.status')} value={filters.status} onChange={(e) => setFilters({ status: e.target.value as VoucherStatus | '' })}>
+            <option value="">{t('common.allStatuses')}</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>{t(`status.${s}`)}</option>
+            ))}
+          </Select>
+        }
+        canClear={hasFilters}
+        onClear={() => {
+          setSearchText('');
+          setParams(new URLSearchParams(), { replace: true });
+        }}
+      />
 
       <Card className="overflow-hidden">
         {list.isLoading ? (

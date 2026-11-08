@@ -1,15 +1,16 @@
-import { FileDown, FileSpreadsheet, Paperclip, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Paperclip, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { AccountPicker } from '@/components/forms/AccountPicker';
+import { FilterBar } from '@/components/tables/FilterBar';
 import { Pagination, Table, Td, Th, THead, Tr } from '@/components/tables/Table';
 import { EntryTypeBadge, StatusBadge } from '@/components/ui/Badge';
 import { Button, ButtonLink, IconButton } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
 import { Dialog } from '@/components/ui/Dialog';
-import { Input, Select } from '@/components/ui/Field';
+import { Select } from '@/components/ui/Field';
 import { PageLoader } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { useAccounts, useMembers } from '@/hooks/useReferenceData';
@@ -116,25 +117,8 @@ export function EntriesListPage() {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <form
-          className="relative w-full max-w-sm"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setFilters({ search: searchText.trim() });
-          }}
-        >
-          <Search size={15} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint" />
-          <Input
-            type="search"
-            className="ps-9"
-            placeholder={t('journal.searchPlaceholder')}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onBlur={() => searchText.trim() !== filters.search && setFilters({ search: searchText.trim() })}
-            aria-label={t('common.search')}
-          />
-        </form>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <p className="num text-[13px] text-muted">{list.data ? t('journal.count', { count: total }) : ''}</p>
         <div className="flex flex-wrap gap-2">
           <Button icon={<FileSpreadsheet size={15} />} onClick={() => void exportCsv()}>
             {t('common.exportCsv')}
@@ -152,73 +136,53 @@ export function EntriesListPage() {
         </div>
       </div>
 
-      <Card className="mb-4 px-4 py-3">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.from')}
-            <Input type="date" className="num h-8" value={filters.from} onChange={(e) => setFilters({ from: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.to')}
-            <Input type="date" className="num h-8" value={filters.to} onChange={(e) => setFilters({ to: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.status')}
-            <Select className="h-8" value={filters.status} onChange={(e) => setFilters({ status: e.target.value as EntryStatus | '' })}>
-              <option value="">{t('common.all')}</option>
-              {ENTRY_STATUSES.map((s) => (
-                <option key={s} value={s}>{t(`status.${s}`)}</option>
-              ))}
-            </Select>
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.entryType')}
-            <Select className="h-8" value={filters.entryType} onChange={(e) => setFilters({ entryType: e.target.value as EntryType | '' })}>
-              <option value="">{t('common.all')}</option>
+      <FilterBar
+        search={searchText}
+        onSearchChange={setSearchText}
+        onSearchCommit={() => searchText.trim() !== filters.search && setFilters({ search: searchText.trim() })}
+        searchPlaceholder={t('journal.searchPlaceholder')}
+        from={filters.from}
+        to={filters.to}
+        onFromChange={(from) => setFilters({ from })}
+        onToChange={(to) => setFilters({ to })}
+        primary={
+          <Select aria-label={t('journal.status')} value={filters.status} onChange={(e) => setFilters({ status: e.target.value as EntryStatus | '' })}>
+            <option value="">{t('common.allStatuses')}</option>
+            {ENTRY_STATUSES.map((s) => (
+              <option key={s} value={s}>{t(`status.${s}`)}</option>
+            ))}
+          </Select>
+        }
+        moreCount={[filters.entryType, filters.voucherType, filters.accountId, filters.createdBy].filter(Boolean).length}
+        more={
+          <>
+            <Select aria-label={t('journal.entryType')} value={filters.entryType} onChange={(e) => setFilters({ entryType: e.target.value as EntryType | '' })}>
+              <option value="">{t('journal.allEntryTypes')}</option>
               {ENTRY_TYPES.map((s) => (
                 <option key={s} value={s}>{t(`entryTypes.${s}`)}</option>
               ))}
             </Select>
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.voucherType')}
-            <Select className="h-8" value={filters.voucherType} onChange={(e) => setFilters({ voucherType: e.target.value as VoucherType | '' })}>
-              <option value="">{t('common.all')}</option>
+            <Select aria-label={t('journal.voucherType')} value={filters.voucherType} onChange={(e) => setFilters({ voucherType: e.target.value as VoucherType | '' })}>
+              <option value="">{t('journal.allVoucherTypes')}</option>
               {VOUCHER_TYPES.map((s) => (
                 <option key={s} value={s}>{t(`voucherTypes.${s}`)}</option>
               ))}
             </Select>
-          </label>
-          <div className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.account')}
-            <AccountPicker accounts={accounts} value={filters.accountId} onChange={(accountId) => setFilters({ accountId })} className="[&_input]:h-8" aria-label={t('journal.account')} />
-          </div>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('journal.createdBy')}
-            <Select className="h-8" value={filters.createdBy} onChange={(e) => setFilters({ createdBy: e.target.value })}>
-              <option value="">{t('common.all')}</option>
+            <AccountPicker accounts={accounts} value={filters.accountId} onChange={(accountId) => setFilters({ accountId })} placeholder={t('journal.allAccounts')} className="[&_input]:h-10" aria-label={t('journal.account')} />
+            <Select aria-label={t('journal.createdBy')} value={filters.createdBy} onChange={(e) => setFilters({ createdBy: e.target.value })}>
+              <option value="">{t('journal.allUsers')}</option>
               {members.map((m) => (
                 <option key={m.user_id} value={m.user_id}>{m.full_name || m.email}</option>
               ))}
             </Select>
-          </label>
-        </div>
-        {hasFilters && (
-          <div className="mt-2 flex justify-end">
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<X size={14} />}
-              onClick={() => {
-                setSearchText('');
-                setParams(new URLSearchParams(), { replace: true });
-              }}
-            >
-              {t('common.clearFilters')}
-            </Button>
-          </div>
-        )}
-      </Card>
+          </>
+        }
+        canClear={hasFilters}
+        onClear={() => {
+          setSearchText('');
+          setParams(new URLSearchParams(), { replace: true });
+        }}
+      />
 
       <Card className="overflow-hidden">
         {list.isLoading ? (

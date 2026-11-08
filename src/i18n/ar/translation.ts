@@ -1,6 +1,7 @@
 export const ar = {
   app: { productName: 'النظام المحاسبي' },
   common: {
+    filters: 'تصفية', allStatuses: 'كل الحالات',
     optional: 'اختياري',
     actions: 'الإجراءات', adjustFilters: 'عدّل عوامل التصفية أو امسحها لعرض نتائج أكثر.', all: 'الكل', back: 'رجوع', cancel: 'إلغاء',
     clearFilters: 'مسح التصفية', close: 'إغلاق', create: 'إنشاء', delete: 'حذف', detailed: 'تفصيلي', download: 'تنزيل',
@@ -97,6 +98,7 @@ export const ar = {
     debit: 'مدين', credit: 'دائن', totalDebit: 'إجمالي المدين', totalCredit: 'إجمالي الدائن', difference: 'الفرق',
     balanced: 'متوازن', unbalanced: 'غير متوازن', noAmounts: 'لا توجد مبالغ بعد', noLines: 'لا توجد أسطر بعد',
     assignedOnSave: 'يُحدد عند الحفظ', noPeriodForDate: 'لا توجد فترة بعد، وستُفتح سنة مالية جديدة تلقائياً عند الترحيل.',
+    allEntryTypes: 'كل أنواع القيود', allVoucherTypes: 'كل أنواع السندات', allAccounts: 'كل الحسابات', allUsers: 'كل المستخدمين', count: '{{count}} قيد',
     exchangeRate: 'سعر الصرف', rateField: 'السعر (1 {{foreign}} = ؟ {{base}})', rateHint: 'مثال: 100 {{foreign}} بسعر 1,680 = 168,000 {{base}}',
     equalsIn: 'المعادل بـ {{base}}', amountIn: 'المبلغ بـ {{currency}}', usDollar: 'دولار أمريكي', saveChanges: 'حفظ التعديلات', updatedToast: 'تم تعديل القيد',
     postedEditTitle: 'أنت تعدّل قيداً مرحّلاً', postedEditBody: 'يتغير دفتر الأستاذ والتقارير فور الحفظ، ويُسجَّل التعديل في سجل هذا القيد.',

@@ -1,6 +1,7 @@
 export const en = {
   app: { productName: 'Accounting System' },
   common: {
+    filters: 'Filters', allStatuses: 'All statuses',
     optional: 'Optional',
     actions: 'Actions', adjustFilters: 'Adjust or clear the filters to see more results.', all: 'All', back: 'Back', cancel: 'Cancel',
     clearFilters: 'Clear filters', close: 'Close', create: 'Create', delete: 'Delete', detailed: 'Detailed', download: 'Download',
@@ -97,6 +98,7 @@ export const en = {
     debit: 'Debit', credit: 'Credit', totalDebit: 'Total debit', totalCredit: 'Total credit', difference: 'Difference',
     balanced: 'Balanced', unbalanced: 'Out of balance', noAmounts: 'No amounts yet', noLines: 'No lines yet',
     assignedOnSave: 'Assigned on save', noPeriodForDate: 'No period yet. A new fiscal year opens automatically when you post.',
+    allEntryTypes: 'All entry types', allVoucherTypes: 'All voucher types', allAccounts: 'All accounts', allUsers: 'All users', count: '{{count}} entries',
     exchangeRate: 'Exchange rate', rateField: 'Rate (1 {{foreign}} = ? {{base}})', rateHint: 'Example: 100 {{foreign}} at 1,680 = 168,000 {{base}}',
     equalsIn: 'Equals in {{base}}', amountIn: 'Amount in {{currency}}', usDollar: 'US Dollar', saveChanges: 'Save changes', updatedToast: 'Entry updated',
     postedEditTitle: 'You are changing a posted entry', postedEditBody: 'The ledger and reports change as soon as you save, and the change is recorded in this entry\'s history.',
