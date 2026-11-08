@@ -19,20 +19,22 @@ import { useToast } from '@/components/ui/Toast';
 import { useAccounts, usePeriods, periodFor } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import {
+  applyExchangeRate,
   buildSimpleEntryLines,
   formatUnits,
   isSimpleEntry,
   linesToPayload,
   summarizeLines,
   toUnits,
+  unitsToDecimalString,
   validateLines,
   type JournalIssue,
   type JournalLineDraft,
 } from '@/lib/accounting';
-import { formatPeriodName, todayIso } from '@/lib/formatting';
+import { formatPeriodName, formatRate, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
-import { uploadAttachment, useJournalEntry, useSaveEntry, useInvalidateLedger } from './api';
+import { entryChangeable, FOREIGN_CURRENCY, uploadAttachment, useJournalEntry, useSaveEntry, useInvalidateLedger } from './api';
 import { AttachmentsPanel, PendingFiles } from './components/AttachmentsPanel';
 import { BalanceIndicator } from './components/BalanceIndicator';
 import { JournalPresentation } from './components/JournalPresentation';
@@ -51,10 +53,12 @@ const schema = z.object({
   debitAccountId: z.string().nullable(),
   creditAccountId: z.string().nullable(),
   amount: z.string(),
+  foreignCurrency: z.string(),
+  rate: z.string(),
   lines: z.array(z.object({ key: z.string(), accountId: z.string().nullable(), debit: z.string(), credit: z.string(), description: z.string() })),
 });
 type FormValues = z.infer<typeof schema>;
-type Intent = 'draft' | 'submit' | 'post';
+type Intent = 'draft' | 'submit' | 'post' | 'update';
 
 function effectiveLines(values: Pick<FormValues, 'mode' | 'debitAccountId' | 'creditAccountId' | 'amount' | 'lines'>): JournalLineDraft[] {
   if (values.mode === 'simple') {
@@ -112,11 +116,13 @@ export function EntryFormPage() {
       debitAccountId: null,
       creditAccountId: null,
       amount: '',
+      foreignCurrency: '',
+      rate: '',
       lines: [newLine(), newLine()],
     },
   });
 
-  // Load an existing draft into the form.
+  // Load an existing entry into the form, in the currency it was typed in.
   useEffect(() => {
     const e = existing.data;
     if (!e) return;
@@ -124,6 +130,10 @@ export function EntryFormPage() {
     const simple = isSimpleEntry(drafts) && e.lines.every((l) => !l.description);
     const debitLine = e.lines.find((l) => toUnits(l.debit_amount) > 0n);
     const creditLine = e.lines.find((l) => toUnits(l.credit_amount) > 0n);
+    const fx = e.foreign_currency ?? null;
+    const decimals = fx ? FOREIGN_CURRENCY.decimals : currency.decimals;
+    const typedDebit = (l: (typeof e.lines)[number]) => toUnits(fx ? l.foreign_debit : l.debit_amount);
+    const typedCredit = (l: (typeof e.lines)[number]) => toUnits(fx ? l.foreign_credit : l.credit_amount);
     form.reset({
       entryDate: e.entry_date,
       entryType: e.entry_type,
@@ -135,12 +145,14 @@ export function EntryFormPage() {
       mode: simple ? 'simple' : 'compound',
       debitAccountId: debitLine?.account_id ?? null,
       creditAccountId: creditLine?.account_id ?? null,
-      amount: simple && debitLine ? formatUnits(toUnits(debitLine.debit_amount), { decimals: currency.decimals }) : '',
+      amount: simple && debitLine ? formatUnits(typedDebit(debitLine), { decimals }) : '',
+      foreignCurrency: fx ?? '',
+      rate: fx ? formatRate(e.exchange_rate) : '',
       lines: e.lines.map((l) =>
         newLine({
           accountId: l.account_id,
-          debit: toUnits(l.debit_amount) ? formatUnits(toUnits(l.debit_amount), { decimals: currency.decimals }) : '',
-          credit: toUnits(l.credit_amount) ? formatUnits(toUnits(l.credit_amount), { decimals: currency.decimals }) : '',
+          debit: typedDebit(l) ? formatUnits(typedDebit(l), { decimals }) : '',
+          credit: typedCredit(l) ? formatUnits(typedCredit(l), { decimals }) : '',
           description: l.description ?? '',
         }),
       ),
@@ -159,14 +171,20 @@ export function EntryFormPage() {
       }),
     [watched.mode, watched.debitAccountId, watched.creditAccountId, watched.amount, watched.lines],
   );
-  const summary = summarizeLines(lines);
+  // Amounts are typed in the chosen currency; totals and the preview show the books' currency.
+  const foreign = watched.foreignCurrency === FOREIGN_CURRENCY.code;
+  const typedCode = foreign ? FOREIGN_CURRENCY.code : currency.code;
+  const typedDecimals = foreign ? FOREIGN_CURRENCY.decimals : currency.decimals;
+  const rate = foreign ? amountToUnits(watched.rate ?? '') : 0n;
+  const baseLines = foreign ? applyExchangeRate(lines, rate, currency.decimals) : lines;
+  const summary = summarizeLines(baseLines);
   const period = watched.entryDate ? periodFor(periods, watched.entryDate) : undefined;
 
   const requireApproval = settings?.require_approval ?? true;
   const canPostDirectly = can('entries.post') && (!requireApproval || can('entries.approve'));
   const canSubmit = can('entries.submit');
 
-  const presentation = lines
+  const presentation = baseLines
     .filter((l) => l.accountId && (l.debit > 0n || l.credit > 0n))
     .map((l, i) => {
       const account = byId.get(l.accountId!);
@@ -183,8 +201,8 @@ export function EntryFormPage() {
         current.map((l) =>
           newLine({
             accountId: l.accountId,
-            debit: l.debit ? formatUnits(l.debit, { decimals: currency.decimals }) : '',
-            credit: l.credit ? formatUnits(l.credit, { decimals: currency.decimals }) : '',
+            debit: l.debit ? formatUnits(l.debit, { decimals: typedDecimals }) : '',
+            credit: l.credit ? formatUnits(l.credit, { decimals: typedDecimals }) : '',
           }),
         ),
       );
@@ -198,7 +216,7 @@ export function EntryFormPage() {
       const credit = drafts.find((l) => l.credit > 0n);
       form.setValue('debitAccountId', debit?.accountId ?? null);
       form.setValue('creditAccountId', credit?.accountId ?? null);
-      form.setValue('amount', debit ? formatUnits(debit.debit, { decimals: currency.decimals }) : '');
+      form.setValue('amount', debit ? formatUnits(debit.debit, { decimals: typedDecimals }) : '');
     }
     form.setValue('mode', mode);
   };
@@ -208,7 +226,12 @@ export function EntryFormPage() {
       setServerError(null);
       setShowLineErrors(true);
       const drafts = effectiveLines(values);
-      const found = validateLines(drafts, { forPosting: intent !== 'draft', decimals: currency.decimals, accounts: byId });
+      const found = validateLines(drafts, { forPosting: intent !== 'draft', decimals: typedDecimals, accounts: byId });
+      if (foreign && rate <= 0n) {
+        setIssues(found);
+        setServerError(t('errors.EXCHANGE_RATE_INVALID'));
+        return;
+      }
       if (values.mode === 'simple' && values.debitAccountId && values.debitAccountId === values.creditAccountId) {
         found.push({ code: 'LINE_INVALID_AMOUNT', line: 2 });
         setServerError(t('errors.SAME_ACCOUNT_BOTH_SIDES'));
@@ -230,6 +253,8 @@ export function EntryFormPage() {
             notes: values.notes.trim() || null,
             reference_number: values.referenceNumber.trim() || null,
             currency_code: currency.code,
+            foreign_currency: foreign ? FOREIGN_CURRENCY.code : null,
+            exchange_rate: foreign ? unitsToDecimalString(rate) : null,
           },
           lines: linesToPayload(drafts),
         });
@@ -237,7 +262,7 @@ export function EntryFormPage() {
         if (intent === 'submit') await rpc('submit_journal_entry', { p_entry_id: entryId });
         if (intent === 'post') await rpc('post_journal_entry', { p_entry_id: entryId });
         await invalidate();
-        toast.success(t(intent === 'post' ? 'journal.postedToast' : intent === 'submit' ? 'journal.submittedToast' : 'journal.savedToast'));
+        toast.success(t(intent === 'update' ? 'journal.updatedToast' : intent === 'post' ? 'journal.postedToast' : intent === 'submit' ? 'journal.submittedToast' : 'journal.savedToast'));
         navigate(`/journal/entries/${entryId}`, { replace: true });
       } catch (e) {
         const message = errorMessage(e, t);
@@ -255,7 +280,8 @@ export function EntryFormPage() {
     })();
 
   if (editing && existing.isLoading) return <PageLoader />;
-  if (editing && existing.data && existing.data.status !== 'draft') {
+  const postedEdit = editing && existing.data?.status === 'posted';
+  if (editing && existing.data && !entryChangeable(existing.data, can)) {
     return (
       <Alert tone="warning" title={t('journal.notEditableTitle')} action={<ButtonLink to={`/journal/entries/${id}`}>{t('common.view')}</ButtonLink>}>
         {t('journal.notEditableBody')}
@@ -273,6 +299,40 @@ export function EntryFormPage() {
   const entry = existing.data;
   const mode = watched.mode ?? 'simple';
 
+  const currencyFields = (
+    <>
+      <Field label={t('journal.currency')}>
+        {(p) => (
+          <Select {...p} {...form.register('foreignCurrency')}>
+            <option value="">{currency.code} · {name(currency)}</option>
+            {currency.code !== FOREIGN_CURRENCY.code && <option value={FOREIGN_CURRENCY.code}>{FOREIGN_CURRENCY.code} · {t('journal.usDollar')}</option>}
+          </Select>
+        )}
+      </Field>
+      {foreign && (
+        <>
+          <Controller
+            control={form.control}
+            name="rate"
+            render={({ field }) => (
+              <Field
+                label={t('journal.rateField', { foreign: FOREIGN_CURRENCY.code, base: currency.code })}
+                required
+                hint={t('journal.rateHint', { foreign: FOREIGN_CURRENCY.code, base: currency.code })}
+                error={showLineErrors && rate <= 0n ? t('errors.EXCHANGE_RATE_INVALID') : null}
+              >
+                {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={0} />}
+              </Field>
+            )}
+          />
+          <StaticField label={t('journal.equalsIn', { base: currency.code })}>
+            <span className="num text-[15px] font-semibold text-ink">{formatUnits(summary.totalDebit, { decimals: currency.decimals })}</span>
+          </StaticField>
+        </>
+      )}
+    </>
+  );
+
   return (
     <form onSubmit={(e) => e.preventDefault()} noValidate className="pb-24">
       <PageHeader
@@ -284,6 +344,12 @@ export function EntryFormPage() {
         title={editing ? t('journal.editEntry', { number: entry?.entry_number ?? '' }) : t('journal.newEntry')}
         subtitle={t('journal.formSubtitle')}
       />
+
+      {postedEdit && (
+        <Alert tone="warning" title={t('journal.postedEditTitle')} className="mb-4">
+          {t('journal.postedEditBody')}
+        </Alert>
+      )}
 
       {entry?.rejection_reason && (
         <Alert tone="warning" title={t('journal.rejectedTitle')} className="mb-4">
@@ -315,10 +381,6 @@ export function EntryFormPage() {
                 </Select>
               )}
             </Field>
-            <StaticField label={t('journal.currency')}>
-              <span className="num">{currency.code}</span>
-              <span className="ms-2 text-muted">{name(currency)}</span>
-            </StaticField>
             <Field label={t('journal.voucherType')} hint={t('journal.voucherTypeHint')}>
               {(p) => (
                 <Select {...p} {...form.register('voucherType')}>
@@ -399,26 +461,30 @@ export function EntryFormPage() {
                   />
                 </SidePanel>
               </div>
-              <div className="max-w-xs">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Controller
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
-                    <Field label={`${t('journal.amount')} (${currency.code})`} required error={showLineErrors && amountToUnits(field.value) <= 0n ? t('errors.VOUCHER_AMOUNT_REQUIRED') : null}>
-                      {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={currency.decimals} />}
+                    <Field label={`${t('journal.amount')} (${typedCode})`} required error={showLineErrors && amountToUnits(field.value) <= 0n ? t('errors.VOUCHER_AMOUNT_REQUIRED') : null}>
+                      {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={typedDecimals} />}
                     </Field>
                   )}
                 />
+                {currencyFields}
               </div>
             </div>
           ) : (
-            <Controller
-              control={form.control}
-              name="lines"
-              render={({ field }) => (
-                <LinesEditor value={field.value as LineInput[]} onChange={field.onChange} accounts={accounts} decimals={currency.decimals} showErrors={showLineErrors} />
-              )}
-            />
+            <>
+              <div className="grid grid-cols-1 gap-4 p-5 pb-4 sm:grid-cols-2 lg:grid-cols-4">{currencyFields}</div>
+              <Controller
+                control={form.control}
+                name="lines"
+                render={({ field }) => (
+                  <LinesEditor value={field.value as LineInput[]} onChange={field.onChange} accounts={accounts} decimals={typedDecimals} showErrors={showLineErrors} />
+                )}
+              />
+            </>
           )}
           <div className="border-t border-line p-5">
             <BalanceIndicator totalDebit={summary.totalDebit} totalCredit={summary.totalCredit} decimals={currency.decimals} />
@@ -443,7 +509,7 @@ export function EntryFormPage() {
         </Card>
 
         {entry ? (
-          <AttachmentsPanel entityType="journal_entry" entityId={entry.id} attachments={entry.attachments} editable onChanged={() => void existing.refetch()} />
+          <AttachmentsPanel entityType="journal_entry" entityId={entry.id} attachments={entry.attachments} editable={entry.status === 'draft'} onChanged={() => void existing.refetch()} />
         ) : (
           <Card>
             <CardHeader title={t('attachments.title')} />
@@ -475,11 +541,17 @@ export function EntryFormPage() {
           <ButtonLink to={editing ? `/journal/entries/${id}` : '/journal'} variant="ghost">
             {t('common.cancel')}
           </ButtonLink>
-          <Button onClick={() => void onSubmit('draft')} loading={busyIntent === 'draft'} disabled={Boolean(busyIntent)}>
-            {t('journal.saveDraft')}
-          </Button>
+          {!postedEdit && (
+            <Button onClick={() => void onSubmit('draft')} loading={busyIntent === 'draft'} disabled={Boolean(busyIntent)}>
+              {t('journal.saveDraft')}
+            </Button>
+          )}
           {/* One next step: post if this user may, otherwise send for approval. */}
-          {canPostDirectly ? (
+          {postedEdit ? (
+            <Button variant="accent" onClick={() => void onSubmit('update')} loading={busyIntent === 'update'} disabled={Boolean(busyIntent) || !summary.isBalanced}>
+              {t('journal.saveChanges')}
+            </Button>
+          ) : canPostDirectly ? (
             <Button variant="accent" onClick={() => void onSubmit('post')} loading={busyIntent === 'post'} disabled={Boolean(busyIntent) || !summary.isBalanced}>
               {t('journal.saveAndPost')}
             </Button>

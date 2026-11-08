@@ -178,15 +178,14 @@ describe('journal entries', () => {
     await db.query(`update accounts set is_active = true where id = $1`, [acc['4200']]);
   });
 
-  it('makes posted entries immutable, even for privileged database users', async () => {
+  it('protects posted entries from direct changes, even by privileged database users', async () => {
     const id = await saveEntry(admin, header('2026-01-07', 'Office supplies'), [line(acc['5200'], 5_000, 0), line(acc['1110'], 0, 5_000)]);
     await rpc(db, admin, 'post_journal_entry', [id]);
     await expectDbError(db.query(`update journal_entries set description = 'changed' where id = $1`, [id]), 'POSTED_ENTRY_IMMUTABLE');
     await expectDbError(db.query(`update journal_entry_lines set debit_amount = 1 where journal_entry_id = $1 and debit_amount > 0`, [id]), 'POSTED_ENTRY_IMMUTABLE');
     await expectDbError(db.query(`delete from journal_entries where id = $1`, [id]), 'POSTED_ENTRY_IMMUTABLE');
     await expectDbError(db.query(`delete from journal_entry_lines where journal_entry_id = $1`, [id]), 'POSTED_ENTRY_IMMUTABLE');
-    await expectDbError(saveEntry(admin, header('2026-01-07', 'edit'), [line(acc['5200'], 1, 0), line(acc['1110'], 0, 1)], id), 'ENTRY_NOT_EDITABLE');
-    await expectDbError(rpc(db, admin, 'delete_journal_entry', [id]), 'ENTRY_NOT_EDITABLE');
+    // Only save_journal_entry and delete_journal_entry may change it: see entries.test.ts.
   });
 
   it('allows editing and deleting drafts only', async () => {
@@ -362,8 +361,8 @@ describe('accounting periods', () => {
     expect((await entry(id)).status).toBe('posted');
   });
 
-  it('rejects dates outside any fiscal period', async () => {
-    const id = await saveEntry(admin, header('2027-02-01', 'Next year'), [line(acc['5200'], 1, 0), line(acc['1110'], 0, 1)]);
+  it('rejects dates too far from any fiscal period', async () => {
+    const id = await saveEntry(admin, header('2060-02-01', 'Far away'), [line(acc['5200'], 1, 0), line(acc['1110'], 0, 1)]);
     await expectDbError(rpc(db, admin, 'post_journal_entry', [id]), 'PERIOD_MISSING');
     await rpc(db, admin, 'delete_journal_entry', [id]);
   });

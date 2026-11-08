@@ -1,4 +1,4 @@
-import { FileDown, FileSpreadsheet, Paperclip, Plus, Search, X } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Paperclip, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -6,8 +6,9 @@ import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { AccountPicker } from '@/components/forms/AccountPicker';
 import { Pagination, Table, Td, Th, THead, Tr } from '@/components/tables/Table';
 import { EntryTypeBadge, StatusBadge } from '@/components/ui/Badge';
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { Button, ButtonLink, IconButton } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
+import { Dialog } from '@/components/ui/Dialog';
 import { Input, Select } from '@/components/ui/Field';
 import { PageLoader } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
@@ -19,7 +20,8 @@ import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import type { EntryStatus, EntryType, VoucherType } from '@/lib/accounting';
 import { ReportDialog } from '@/features/reports/ReportDialog';
-import { emptyJournalFilters, fetchAllJournalEntries, useJournalEntries, type JournalFilters } from './api';
+import type { JournalListRow } from '@/types/database';
+import { emptyJournalFilters, entryChangeable, fetchAllJournalEntries, useEntryAction, useJournalEntries, type JournalFilters } from './api';
 
 export const ENTRY_STATUSES: EntryStatus[] = ['draft', 'pending_approval', 'posted', 'reversed'];
 export const ENTRY_TYPES: EntryType[] = ['standard', 'opening', 'adjusting', 'closing', 'reversing', 'recurring'];
@@ -63,6 +65,8 @@ export function EntriesListPage() {
   const page = Number(params.get('page') ?? 0);
   const [searchText, setSearchText] = useState(filters.search);
   const [reportOpen, setReportOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<JournalListRow | null>(null);
+  const action = useEntryAction();
   const { companyId, currency, can } = useCompany();
   const { accounts } = useAccounts();
   const { members } = useMembers();
@@ -98,6 +102,17 @@ export function EntriesListPage() {
   };
 
   const statuses: EntryStatus[] = filters.status ? [filters.status] : ['posted', 'reversed'];
+
+  const deleteEntry = async () => {
+    if (!toDelete) return;
+    try {
+      await action.mutateAsync({ type: 'delete', id: toDelete.id });
+      toast.success(t(toDelete.status === 'posted' ? 'journal.entryDeletedToast' : 'journal.deletedToast'));
+      setToDelete(null);
+    } catch (e) {
+      toast.error(errorMessage(e, t));
+    }
+  };
 
   return (
     <>
@@ -226,7 +241,7 @@ export function EntriesListPage() {
           />
         ) : (
           <>
-            <Table minWidth={1080}>
+            <Table minWidth={1160}>
               <THead>
                 <tr>
                   <Th>{t('journal.entryNumber')}</Th>
@@ -238,6 +253,7 @@ export function EntriesListPage() {
                   <Th numeric>{t('journal.totalCredit')}</Th>
                   <Th>{t('journal.status')}</Th>
                   <Th>{t('journal.createdBy')}</Th>
+                  <Th><span className="sr-only">{t('common.actions')}</span></Th>
                 </tr>
               </THead>
               <tbody>
@@ -263,6 +279,18 @@ export function EntriesListPage() {
                     <Td numeric>{formatAmount(row.total_credit, currency.decimals)}</Td>
                     <Td><StatusBadge status={row.status} /></Td>
                     <Td className="text-ink-soft">{row.created_by_name ?? '—'}</Td>
+                    <Td className="w-[88px] whitespace-nowrap py-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                      {entryChangeable(row, can) && (
+                        <div className="flex justify-end gap-0.5">
+                          <IconButton label={t('common.edit')} onClick={() => navigate(`/journal/entries/${row.id}/edit`)}>
+                            <Pencil size={15} />
+                          </IconButton>
+                          <IconButton label={t('common.delete')} className="hover:!bg-danger-soft hover:!text-danger" onClick={() => setToDelete(row)}>
+                            <Trash2 size={15} />
+                          </IconButton>
+                        </div>
+                      )}
+                    </Td>
                   </Tr>
                 ))}
               </tbody>
@@ -271,6 +299,23 @@ export function EntriesListPage() {
           </>
         )}
       </Card>
+
+      <Dialog
+        open={Boolean(toDelete)}
+        onClose={() => setToDelete(null)}
+        title={toDelete ? t(toDelete.status === 'posted' ? 'journal.deletePostedTitle' : 'journal.deleteTitle', { number: toDelete.entry_number }) : ''}
+        size="sm"
+        footer={
+          <>
+            <Button onClick={() => setToDelete(null)}>{t('common.cancel')}</Button>
+            <Button variant="danger" loading={action.isPending} onClick={() => void deleteEntry()}>
+              {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-[13.5px] text-ink-soft">{t(toDelete?.status === 'posted' ? 'journal.deletePostedBody' : 'journal.deleteBody')}</p>
+      </Dialog>
 
       <ReportDialog
         open={reportOpen}

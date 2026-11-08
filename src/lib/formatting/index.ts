@@ -18,6 +18,11 @@ function parseIsoDate(value: string): Date | null {
  * Slashes keep the date in the correct order inside Arabic text, unlike
  * hyphens, which the Unicode bidi algorithm reorders after Arabic letters.
  */
+/** An exchange rate as people say it: 1,680 or 1,683.5, without trailing zeros. */
+export function formatRate(value: number | string | null | undefined): string {
+  return Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 4 });
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);

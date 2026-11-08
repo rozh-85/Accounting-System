@@ -139,6 +139,9 @@ export interface DocumentLine {
   debit_amount: Numeric;
   credit_amount: Numeric;
   description: string | null;
+  /** The amounts as typed, when the entry was entered in a foreign currency. */
+  foreign_debit?: Numeric | null;
+  foreign_credit?: Numeric | null;
 }
 
 export interface Attachment {
@@ -173,6 +176,9 @@ export interface JournalEntryDetail {
   notes: string | null;
   reference_number: string | null;
   currency_code: string;
+  /** Set when the entry was typed in another currency; exchange_rate is base per 1 unit of it. */
+  foreign_currency?: string | null;
+  exchange_rate?: Numeric;
   total_debit: Numeric;
   total_credit: Numeric;
   source: 'manual' | 'voucher' | 'reversal' | 'recurring' | 'closing';

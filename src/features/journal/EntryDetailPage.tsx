@@ -11,11 +11,11 @@ import { PageLoader } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useReportIdentity } from '@/hooks/useReportIdentity';
-import { toUnits } from '@/lib/accounting';
-import { formatDate, formatDateTime, formatPeriodName, todayIso } from '@/lib/formatting';
+import { formatUnits, toUnits } from '@/lib/accounting';
+import { formatDate, formatDateTime, formatPeriodName, formatRate, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { ReportDialog } from '@/features/reports/ReportDialog';
-import { useEntryAction, useJournalEntry } from './api';
+import { entryChangeable, FOREIGN_CURRENCY, useEntryAction, useJournalEntry } from './api';
 import { AttachmentsPanel } from './components/AttachmentsPanel';
 import { BalanceIndicator } from './components/BalanceIndicator';
 import { HistoryTimeline } from './components/HistoryTimeline';
@@ -51,6 +51,8 @@ export function EntryDetailPage() {
   const entry = query.data;
   const isDraft = entry.status === 'draft';
   const isPending = entry.status === 'pending_approval';
+  const changeable = entryChangeable(entry, can);
+  const foreignTotal = entry.foreign_currency ? entry.lines.reduce((sum, l) => sum + toUnits(l.foreign_debit), 0n) : null;
   const requireApproval = settings?.require_approval ?? true;
   const canPostDirectly = can('entries.post') && (!requireApproval || can('entries.approve'));
 
@@ -97,10 +99,10 @@ export function EntryDetailPage() {
             <Button icon={<Printer size={15} />} onClick={() => setDialog('print')}>
               {t('common.print')}
             </Button>
-            {isDraft && can('entries.edit_draft') && entry.source !== 'voucher' && (
+            {changeable && (
               <>
                 <Button variant="danger" icon={<Trash2 size={15} />} onClick={() => setDialog('delete')}>
-                  {t('journal.deleteDraft')}
+                  {isDraft ? t('journal.deleteDraft') : t('common.delete')}
                 </Button>
                 <ButtonLink to={`/journal/entries/${entry.id}/edit`} icon={<Pencil size={15} />}>
                   {t('common.edit')}
@@ -170,7 +172,17 @@ export function EntryDetailPage() {
             <Detail label={t('journal.entryNumber')}><span className="num">{entry.entry_number}</span></Detail>
             <Detail label={t('journal.entryDate')}><span className="num">{formatDate(entry.entry_date)}</span></Detail>
             <Detail label={t('journal.entryType')}>{t(`entryTypes.${entry.entry_type}`)}</Detail>
-            <Detail label={t('journal.currency')}><span className="num">{entry.currency_code}</span></Detail>
+            <Detail label={t('journal.currency')}><span className="num">{entry.foreign_currency ?? entry.currency_code}</span></Detail>
+            {entry.foreign_currency && (
+              <>
+                <Detail label={t('journal.amountIn', { currency: entry.foreign_currency })}>
+                  <span className="num">{formatUnits(foreignTotal ?? 0n, { decimals: FOREIGN_CURRENCY.decimals })}</span>
+                </Detail>
+                <Detail label={t('journal.exchangeRate')}>
+                  <span className="num" dir="ltr">1 {entry.foreign_currency} = {formatRate(entry.exchange_rate)} {entry.currency_code}</span>
+                </Detail>
+              </>
+            )}
             <Detail label={t('journal.voucherType')}>{entry.voucher_type ? t(`voucherTypes.${entry.voucher_type}`) : null}</Detail>
             <Detail label={t('journal.voucherNumber')}>
               {entry.voucher_id ? (
@@ -234,18 +246,18 @@ export function EntryDetailPage() {
       <Dialog
         open={dialog === 'delete'}
         onClose={() => setDialog(null)}
-        title={t('journal.deleteTitle', { number: entry.entry_number })}
+        title={t(isDraft ? 'journal.deleteTitle' : 'journal.deletePostedTitle', { number: entry.entry_number })}
         size="sm"
         footer={
           <>
             <Button onClick={() => setDialog(null)}>{t('common.cancel')}</Button>
-            <Button variant="danger" loading={action.isPending} onClick={() => void run({ type: 'delete', id: entry.id }, t('journal.deletedToast'))}>
-              {t('journal.deleteDraft')}
+            <Button variant="danger" loading={action.isPending} onClick={() => void run({ type: 'delete', id: entry.id }, t(isDraft ? 'journal.deletedToast' : 'journal.entryDeletedToast'))}>
+              {isDraft ? t('journal.deleteDraft') : t('common.delete')}
             </Button>
           </>
         }
       >
-        <p className="text-[13.5px] text-ink-soft">{t('journal.deleteBody')}</p>
+        <p className="text-[13.5px] text-ink-soft">{t(isDraft ? 'journal.deleteBody' : 'journal.deletePostedBody')}</p>
       </Dialog>
       <ReportDialog
         open={dialog === 'print'}

@@ -4,7 +4,32 @@ import type { EntryStatus, EntryType, VoucherType } from '@/lib/accounting';
 import { ATTACHMENTS_BUCKET, supabase } from '@/lib/supabase/client';
 import { toAppError } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
-import type { JournalEntryDetail, JournalListRow } from '@/types/database';
+import type { JournalEntryDetail, JournalListRow, Permission } from '@/types/database';
+
+/** The dollar is the one foreign currency offered on journal entries. */
+export const FOREIGN_CURRENCY = { code: 'USD', decimals: 2 } as const;
+
+/**
+ * Whether this user may edit or delete the entry. Drafts need the draft right;
+ * a posted entry also needs the right to reverse. Entries owned by a voucher, a
+ * reversal or a year-end close are changed through those instead. The database
+ * applies the same rule and also refuses a closed period.
+ */
+export function entryChangeable(
+  entry: Pick<JournalListRow, 'status' | 'source' | 'voucher_id' | 'reversal_of_id' | 'entry_type'>,
+  can: (permission: Permission) => boolean,
+) {
+  if (!can('entries.edit_draft') || entry.source === 'voucher') return false;
+  if (entry.status === 'draft') return true;
+  return (
+    entry.status === 'posted' &&
+    can('entries.reverse') &&
+    (entry.source === 'manual' || entry.source === 'recurring') &&
+    entry.entry_type !== 'closing' &&
+    !entry.voucher_id &&
+    !entry.reversal_of_id
+  );
+}
 
 export interface JournalFilters {
   search: string;
@@ -74,6 +99,8 @@ export interface EntryHeaderPayload {
   notes: string | null;
   reference_number: string | null;
   currency_code: string;
+  foreign_currency: string | null;
+  exchange_rate: string | null;
 }
 
 export interface LinePayload {
@@ -88,7 +115,7 @@ export function useInvalidateLedger() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all(
-      ['journal', 'journal-entry', 'vouchers', 'voucher', 'dashboard', 'ledger', 'balances', 'trial-balance', 'financial-position', 'audit'].map((key) =>
+      ['journal', 'journal-entry', 'vouchers', 'voucher', 'dashboard', 'ledger', 'balances', 'trial-balance', 'financial-position', 'audit', 'periods', 'fiscal-years'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );

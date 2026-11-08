@@ -4,6 +4,7 @@ import {
   buildFinancialPosition,
   buildDailyLedger,
   buildLedgerStatement,
+  applyExchangeRate,
   buildSimpleEntryLines,
   buildTAccount,
   buildTrialBalance,
@@ -396,5 +397,35 @@ describe('amount in words', () => {
     const iqd = { code: 'IQD', name_en: 'Iraqi Dinar', name_ar: 'دينار عراقي', decimals: 0 };
     expect(amountInWords(u(1_000_000), iqd, 'ar')).toBe('فقط مليون دينار عراقي لا غير');
     expect(amountInWords(u(1_000_000), iqd, 'en')).toBe('One million Iraqi Dinar only');
+  });
+});
+
+describe('applyExchangeRate', () => {
+  const d = (debit: number | string, credit: number | string) => ({ accountId: 'a', debit: toUnits(debit), credit: toUnits(credit) });
+
+  it('turns 100 dollars at 1,680 into 168,000 dinars', () => {
+    const [a, b] = applyExchangeRate([d(100, 0), d(0, 100)], toUnits(1680), 0);
+    expect(a.debit).toBe(toUnits(168000));
+    expect(b.credit).toBe(toUnits(168000));
+  });
+
+  it('rounds each line to the base currency', () => {
+    const [a] = applyExchangeRate([d('1.33', 0)], toUnits('1683.5'), 0);
+    expect(a.debit).toBe(toUnits(2239));
+  });
+
+  it('keeps a balanced entry balanced after rounding', () => {
+    const lines = applyExchangeRate([d('1.33', 0), d('1.33', 0), d(0, '2.66')], toUnits('1683.5'), 0);
+    const total = (key: 'debit' | 'credit') => lines.reduce((sum, l) => sum + l[key], 0n);
+    expect(total('debit')).toBe(total('credit'));
+  });
+
+  it('leaves an unbalanced entry unbalanced, so the user sees it', () => {
+    const lines = applyExchangeRate([d(100, 0), d(0, 90)], toUnits(1680), 0);
+    expect(lines[0].debit - lines[1].credit).toBe(toUnits(16800));
+  });
+
+  it('gives zero without a rate', () => {
+    expect(applyExchangeRate([d(100, 0)], 0n, 0)[0].debit).toBe(0n);
   });
 });

@@ -1,6 +1,6 @@
 import { Text, View } from '@react-pdf/renderer';
 import { amountInWords, formatUnits, orderForPresentation, toUnits, type CurrencyWords } from '@/lib/accounting';
-import { formatDate, formatDateTime } from '@/lib/formatting';
+import { formatDate, formatDateTime, formatRate } from '@/lib/formatting';
 import type { JournalEntryDetail, VoucherDetail } from '@/types/database';
 import {
   KeyValueGrid,
@@ -87,7 +87,13 @@ export function JournalEntryDocument({ context, decimals, entry }: { context: Re
     { label: t('journal.voucherType'), value: entry.voucher_type ? t(`voucherTypes.${entry.voucher_type}`) : '—' },
     { label: t('journal.voucherNumber'), value: entry.voucher_number ?? '—' },
     { label: t('journal.reference'), value: entry.reference_number ?? '—' },
-    { label: t('journal.currency'), value: entry.currency_code },
+    { label: t('journal.currency'), value: entry.foreign_currency ?? entry.currency_code },
+    ...(entry.foreign_currency
+      ? [
+          { label: t('journal.amountIn', { currency: entry.foreign_currency }), value: formatUnits(entry.lines.reduce((sum, l) => sum + toUnits(l.foreign_debit), 0n), { decimals: 2 }) },
+          { label: t('journal.exchangeRate'), value: `1 ${entry.foreign_currency} = ${formatRate(entry.exchange_rate)} ${entry.currency_code}` },
+        ]
+      : []),
     { label: t('journal.createdBy'), value: entry.created_by_name ?? '—' },
     { label: t('journal.approvedBy'), value: entry.approved_by_name ?? '—' },
     { label: t('journal.postedAt'), value: entry.posted_at ? formatDateTime(entry.posted_at) : '—' },

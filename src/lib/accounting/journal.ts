@@ -1,4 +1,4 @@
-import { fitsCurrencyPrecision, sumUnits, unitsToDecimalString, type Units } from './money';
+import { fitsCurrencyPrecision, SCALE, SCALE_DIGITS, sumUnits, unitsToDecimalString, type Units } from './money';
 import type { Account, PaymentMethod, VoucherType } from './types';
 
 export interface JournalLineDraft {
@@ -111,6 +111,25 @@ export function isSimpleEntry(lines: readonly JournalLineDraft[]): boolean {
 /** Debit lines first, then credit lines — the order used in formal journal presentation. */
 export function orderForPresentation<T extends { debit: Units; credit: Units }>(lines: readonly T[]): T[] {
   return [...lines.filter((l) => l.debit > 0n), ...lines.filter((l) => l.debit === 0n)];
+}
+
+/**
+ * Converts lines typed in a foreign currency to base currency, the way the
+ * database does when it saves them: each line is rounded to the base currency's
+ * precision, and if the typed lines balance but the rounded ones do not, the
+ * largest credit line takes the difference. `rate` is base per 1 foreign, in units.
+ */
+export function applyExchangeRate(lines: readonly JournalLineDraft[], rate: Units, baseDecimals: number): JournalLineDraft[] {
+  const step = 10n ** BigInt(SCALE_DIGITS - baseDecimals);
+  const convert = (amount: Units) => (((2n * amount * rate + SCALE * step) / (2n * SCALE * step)) * step);
+  const converted = lines.map((l) => ({ ...l, debit: convert(l.debit), credit: convert(l.credit) }));
+  const typed = summarizeLines(lines);
+  const base = summarizeLines(converted);
+  if (typed.difference === 0n && base.difference !== 0n) {
+    const largest = converted.reduce((best, l, i) => (l.credit > (converted[best]?.credit ?? 0n) ? i : best), 0);
+    converted[largest] = { ...converted[largest], credit: converted[largest].credit + base.difference };
+  }
+  return converted;
 }
 
 export function linesToPayload(lines: readonly JournalLineDraft[]) {
