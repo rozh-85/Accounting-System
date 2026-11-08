@@ -30,7 +30,7 @@ function DateFilter({ label, value, onChange }: { label: string; value: string; 
   return (
     <div className="relative min-w-0">
       <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-[12px] text-muted">{label}</span>
-      <Input type="date" aria-label={label} className="num pe-2 ps-[2.9rem]" value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input type="date" aria-label={label} className="num pe-2 ps-[2.9rem] max-sm:[&::-webkit-calendar-picker-indicator]:hidden" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
