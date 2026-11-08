@@ -18,6 +18,26 @@ function parseIsoDate(value: string): Date | null {
  * Slashes keep the date in the correct order inside Arabic text, unlike
  * hyphens, which the Unicode bidi algorithm reorders after Arabic letters.
  */
+const SEARCH_LETTERS: Record<string, string> = {
+  'ي': 'ی', 'ى': 'ی', 'ئ': 'ی', 'ك': 'ک', 'ة': 'ه', 'ە': 'ه', 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ؤ': 'و',
+};
+
+/**
+ * Folds text so a search finds it however it was typed. Arabic and Kurdish
+ * keyboards produce different letters for the same word (ي / ی, ك / ک), and the
+ * chart of accounts mixes them. Arabic-Indic digits become Latin ones.
+ */
+export function normalizeSearch(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[يىئكةەأإآؤ]/g, (c) => SEARCH_LETTERS[c])
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** An exchange rate as people say it: 1,680 or 1,683.5, without trailing zeros. */
 export function formatRate(value: number | string | null | undefined): string {
   return Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 4 });

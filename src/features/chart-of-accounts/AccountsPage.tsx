@@ -20,6 +20,7 @@ import { buildAccountTree, flattenTree, type Account, type AccountType } from '@
 import { downloadCsv } from '@/lib/csv';
 import { supabase } from '@/lib/supabase/client';
 import { errorMessage, toAppError } from '@/lib/supabase/errors';
+import { normalizeSearch } from '@/lib/formatting';
 
 const ACCOUNT_TYPES: AccountType[] = ['asset', 'liability', 'equity', 'revenue', 'expense'];
 const NORMAL_BALANCE: Record<AccountType, 'debit' | 'credit'> = { asset: 'debit', expense: 'debit', liability: 'credit', equity: 'credit', revenue: 'credit' };
@@ -237,11 +238,11 @@ export function AccountsPage() {
 
   const rows = useMemo(() => {
     const flat = flattenTree(buildAccountTree(accounts));
-    const q = search.trim().toLowerCase();
+    const q = normalizeSearch(search);
     return flat.filter(({ account: a }) => {
       if (typeFilter && a.account_type !== typeFilter) return false;
       if (!showInactive && !a.is_active) return false;
-      if (q && !a.code.toLowerCase().includes(q) && !a.name_en.toLowerCase().includes(q) && !a.name_ar.includes(search.trim())) return false;
+      if (q && !a.code.toLowerCase().includes(q) && !normalizeSearch(a.name_en).includes(q) && !normalizeSearch(a.name_ar).includes(q)) return false;
       return true;
     });
   }, [accounts, search, typeFilter, showInactive]);

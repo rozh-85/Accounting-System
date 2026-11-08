@@ -1,3 +1,4 @@
+import { normalizeSearch } from '@/lib/formatting';
 import { describe, expect, it } from 'vitest';
 import {
   amountInWords,
@@ -427,5 +428,20 @@ describe('applyExchangeRate', () => {
 
   it('gives zero without a rate', () => {
     expect(applyExchangeRate([d(100, 0)], 0n, 0)[0].debit).toBe(0n);
+  });
+});
+
+describe('normalizeSearch', () => {
+  it('finds a word however the keyboard spelled it', () => {
+    expect(normalizeSearch('المبيعات')).toBe(normalizeSearch('المبیعات'));
+    expect(normalizeSearch('كلفة')).toBe(normalizeSearch('کلفه'));
+    expect(normalizeSearch('إيرادات')).toBe(normalizeSearch('ایرادات'));
+  });
+
+  it('reads Arabic-Indic digits and ignores case, marks and extra spaces', () => {
+    expect(normalizeSearch('١٨١١')).toBe('1811');
+    expect(normalizeSearch('۳۲۵۱')).toBe('3251');
+    expect(normalizeSearch('  Head   OFFICE ')).toBe('head office');
+    expect(normalizeSearch('مَبيعات')).toBe(normalizeSearch('مبیعات'));
   });
 });
