@@ -299,16 +299,8 @@ export function EntryFormPage() {
   const entry = existing.data;
   const mode = watched.mode ?? 'simple';
 
-  const currencyFields = (
+  const rateFields = (
     <>
-      <Field label={t('journal.currency')}>
-        {(p) => (
-          <Select {...p} {...form.register('foreignCurrency')}>
-            <option value="">{currency.code} · {name(currency)}</option>
-            {currency.code !== FOREIGN_CURRENCY.code && <option value={FOREIGN_CURRENCY.code}>{FOREIGN_CURRENCY.code} · {t('journal.usDollar')}</option>}
-          </Select>
-        )}
-      </Field>
       {foreign && (
         <>
           <Controller
@@ -381,6 +373,14 @@ export function EntryFormPage() {
                 </Select>
               )}
             </Field>
+            <Field label={t('journal.currency')}>
+              {(p) => (
+                <Select {...p} {...form.register('foreignCurrency')}>
+                  <option value="">{currency.code} · {name(currency)}</option>
+                  {currency.code !== FOREIGN_CURRENCY.code && <option value={FOREIGN_CURRENCY.code}>{FOREIGN_CURRENCY.code} · {t('journal.usDollar')}</option>}
+                </Select>
+              )}
+            </Field>
             <Field label={t('journal.voucherType')} hint={t('journal.voucherTypeHint')}>
               {(p) => (
                 <Select {...p} {...form.register('voucherType')}>
@@ -392,10 +392,10 @@ export function EntryFormPage() {
               )}
             </Field>
             <Field label={t('journal.voucherNumber')} error={err('voucherNumber')}>
-              {(p) => <Input {...p} dir="ltr" className="num" {...form.register('voucherNumber')} />}
+              {(p) => <Input {...p} dir="ltr" className="num" placeholder={t('common.optional')} {...form.register('voucherNumber')} />}
             </Field>
             <Field label={t('journal.reference')} error={err('referenceNumber')}>
-              {(p) => <Input {...p} dir="ltr" {...form.register('referenceNumber')} />}
+              {(p) => <Input {...p} dir="ltr" placeholder={t('common.optional')} {...form.register('referenceNumber')} />}
             </Field>
             <StaticField label={t('journal.status')}>
               <StatusBadge status={entry?.status ?? 'draft'} />
@@ -471,12 +471,12 @@ export function EntryFormPage() {
                     </Field>
                   )}
                 />
-                {currencyFields}
+                {rateFields}
               </div>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 p-5 pb-4 sm:grid-cols-2 lg:grid-cols-4">{currencyFields}</div>
+              {foreign && <div className="grid grid-cols-1 gap-4 p-5 pb-4 sm:grid-cols-2 lg:grid-cols-4">{rateFields}</div>}
               <Controller
                 control={form.control}
                 name="lines"

@@ -1,6 +1,7 @@
 export const ar = {
   app: { productName: 'النظام المحاسبي' },
   common: {
+    optional: 'اختياري',
     actions: 'الإجراءات', adjustFilters: 'عدّل عوامل التصفية أو امسحها لعرض نتائج أكثر.', all: 'الكل', back: 'رجوع', cancel: 'إلغاء',
     clearFilters: 'مسح التصفية', close: 'إغلاق', create: 'إنشاء', delete: 'حذف', detailed: 'تفصيلي', download: 'تنزيل',
     edit: 'تعديل', exportCsv: 'تصدير CSV', exportPdf: 'تصدير PDF', from: 'من', language: 'اللغة', no: 'لا', none: 'بدون',

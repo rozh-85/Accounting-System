@@ -1,6 +1,7 @@
 export const en = {
   app: { productName: 'Accounting System' },
   common: {
+    optional: 'Optional',
     actions: 'Actions', adjustFilters: 'Adjust or clear the filters to see more results.', all: 'All', back: 'Back', cancel: 'Cancel',
     clearFilters: 'Clear filters', close: 'Close', create: 'Create', delete: 'Delete', detailed: 'Detailed', download: 'Download',
     edit: 'Edit', exportCsv: 'Export CSV', exportPdf: 'Export PDF', from: 'From', language: 'Language', no: 'No', none: 'None',
