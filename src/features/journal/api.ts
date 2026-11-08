@@ -9,26 +9,29 @@ import type { JournalEntryDetail, JournalListRow, Permission } from '@/types/dat
 /** The dollar is the one foreign currency offered on journal entries. */
 export const FOREIGN_CURRENCY = { code: 'USD', decimals: 2 } as const;
 
+type EntryLinks = Pick<JournalListRow, 'status' | 'source' | 'voucher_id' | 'reversal_of_id'>;
+type Can = (permission: Permission) => boolean;
+
 /**
- * Whether this user may edit or delete the entry. Drafts need the draft right;
- * a posted entry also needs the right to reverse. Entries owned by a voucher, a
- * reversal or a year-end close are changed through those instead. The database
- * applies the same rule and also refuses a closed period.
+ * Drafts need the draft right; anything past draft also needs the right to
+ * reverse. An entry that belongs to a voucher cannot be edited, because the
+ * voucher would no longer match. The database applies the same rules and also
+ * refuses a closed period.
  */
-export function entryChangeable(
-  entry: Pick<JournalListRow, 'status' | 'source' | 'voucher_id' | 'reversal_of_id' | 'entry_type'>,
-  can: (permission: Permission) => boolean,
-) {
-  if (!can('entries.edit_draft') || entry.source === 'voucher') return false;
+export function entryEditable(entry: EntryLinks, can: Can) {
+  if (!can('entries.edit_draft') || entry.voucher_id || entry.source === 'voucher') return false;
   if (entry.status === 'draft') return true;
-  return (
-    entry.status === 'posted' &&
-    can('entries.reverse') &&
-    (entry.source === 'manual' || entry.source === 'recurring') &&
-    entry.entry_type !== 'closing' &&
-    !entry.voucher_id &&
-    !entry.reversal_of_id
-  );
+  return (entry.status === 'posted' || entry.status === 'reversed') && can('entries.reverse');
+}
+
+export function entryDeletable(entry: EntryLinks, can: Can) {
+  if (!can('entries.edit_draft')) return false;
+  return entry.status === 'draft' || can('entries.reverse');
+}
+
+/** Deleting this entry also changes a voucher or a reversal linked to it. */
+export function entryHasLinks(entry: EntryLinks) {
+  return Boolean(entry.voucher_id || entry.reversal_of_id) || entry.status === 'reversed';
 }
 
 export interface JournalFilters {

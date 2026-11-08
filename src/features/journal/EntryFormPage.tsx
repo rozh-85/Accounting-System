@@ -34,7 +34,7 @@ import {
 import { formatPeriodName, formatRate, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
-import { entryChangeable, FOREIGN_CURRENCY, uploadAttachment, useJournalEntry, useSaveEntry, useInvalidateLedger } from './api';
+import { entryEditable, FOREIGN_CURRENCY, uploadAttachment, useJournalEntry, useSaveEntry, useInvalidateLedger } from './api';
 import { AttachmentsPanel, PendingFiles } from './components/AttachmentsPanel';
 import { BalanceIndicator } from './components/BalanceIndicator';
 import { JournalPresentation } from './components/JournalPresentation';
@@ -280,8 +280,8 @@ export function EntryFormPage() {
     })();
 
   if (editing && existing.isLoading) return <PageLoader />;
-  const postedEdit = editing && existing.data?.status === 'posted';
-  if (editing && existing.data && !entryChangeable(existing.data, can)) {
+  const postedEdit = editing && (existing.data?.status === 'posted' || existing.data?.status === 'reversed');
+  if (editing && existing.data && !entryEditable(existing.data, can)) {
     return (
       <Alert tone="warning" title={t('journal.notEditableTitle')} action={<ButtonLink to={`/journal/entries/${id}`}>{t('common.view')}</ButtonLink>}>
         {t('journal.notEditableBody')}

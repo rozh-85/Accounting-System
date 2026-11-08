@@ -22,7 +22,7 @@ import { rpc } from '@/lib/supabase/rpc';
 import type { EntryStatus, EntryType, VoucherType } from '@/lib/accounting';
 import { ReportDialog } from '@/features/reports/ReportDialog';
 import type { JournalListRow } from '@/types/database';
-import { emptyJournalFilters, entryChangeable, fetchAllJournalEntries, useEntryAction, useJournalEntries, type JournalFilters } from './api';
+import { emptyJournalFilters, entryDeletable, entryEditable, entryHasLinks, fetchAllJournalEntries, useEntryAction, useJournalEntries, type JournalFilters } from './api';
 
 export const ENTRY_STATUSES: EntryStatus[] = ['draft', 'pending_approval', 'posted', 'reversed'];
 export const ENTRY_TYPES: EntryType[] = ['standard', 'opening', 'adjusting', 'closing', 'reversing', 'recurring'];
@@ -108,7 +108,7 @@ export function EntriesListPage() {
     if (!toDelete) return;
     try {
       await action.mutateAsync({ type: 'delete', id: toDelete.id });
-      toast.success(t(toDelete.status === 'posted' ? 'journal.entryDeletedToast' : 'journal.deletedToast'));
+      toast.success(t(toDelete.status === 'draft' ? 'journal.deletedToast' : 'journal.entryDeletedToast'));
       setToDelete(null);
     } catch (e) {
       toast.error(errorMessage(e, t));
@@ -244,16 +244,18 @@ export function EntriesListPage() {
                     <Td><StatusBadge status={row.status} /></Td>
                     <Td className="text-ink-soft">{row.created_by_name ?? '—'}</Td>
                     <Td className="w-[88px] whitespace-nowrap py-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                      {entryChangeable(row, can) && (
-                        <div className="flex justify-end gap-0.5">
+                      <div className="flex justify-end gap-0.5">
+                        {entryEditable(row, can) && (
                           <IconButton label={t('common.edit')} onClick={() => navigate(`/journal/entries/${row.id}/edit`)}>
                             <Pencil size={15} />
                           </IconButton>
+                        )}
+                        {entryDeletable(row, can) && (
                           <IconButton label={t('common.delete')} className="hover:!bg-danger-soft hover:!text-danger" onClick={() => setToDelete(row)}>
                             <Trash2 size={15} />
                           </IconButton>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </Td>
                   </Tr>
                 ))}
@@ -267,7 +269,7 @@ export function EntriesListPage() {
       <Dialog
         open={Boolean(toDelete)}
         onClose={() => setToDelete(null)}
-        title={toDelete ? t(toDelete.status === 'posted' ? 'journal.deletePostedTitle' : 'journal.deleteTitle', { number: toDelete.entry_number }) : ''}
+        title={toDelete ? t(toDelete.status === 'draft' ? 'journal.deleteTitle' : 'journal.deletePostedTitle', { number: toDelete.entry_number }) : ''}
         size="sm"
         footer={
           <>
@@ -278,7 +280,8 @@ export function EntriesListPage() {
           </>
         }
       >
-        <p className="text-[13.5px] text-ink-soft">{t(toDelete?.status === 'posted' ? 'journal.deletePostedBody' : 'journal.deleteBody')}</p>
+        <p className="text-[13.5px] text-ink-soft">{t(toDelete && toDelete.status !== 'draft' ? 'journal.deletePostedBody' : 'journal.deleteBody')}</p>
+        {toDelete && entryHasLinks(toDelete) && <p className="mt-2 text-[13.5px] font-medium text-ink">{t('journal.deleteLinkedNote')}</p>}
       </Dialog>
 
       <ReportDialog

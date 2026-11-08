@@ -23,7 +23,7 @@ Supporting modules: Chart of Accounts (دليل الحسابات), Accounting Pe
 - Live balance indicator; posting is disabled until debits equal credits.
 - Formal journal presentation — Arabic uses مدين / دائن columns first with “من حـ/ … / إلى حـ/ …” (and “من مذكورين / إلى مذكورين” for compound entries).
 - Reversal creates a new posted entry with swapped sides; the original is preserved and linked.
-- A posted entry can also be edited or deleted, while its period is open, by a user who may both edit drafts and reverse entries. The previous figures stay in the audit log. Entries owned by a voucher, a reversal or a year-end close stay locked.
+- A posted entry can also be edited or deleted, while its period is open, by a user who may both edit drafts and reverse entries. The previous figures stay in the audit log. Deleting a reversed entry removes its reversal, deleting a reversal puts the original back to posted, and deleting a voucher's entry removes the voucher. An entry that belongs to a voucher cannot be edited.
 - An entry can be typed in US dollars with the day's rate (1 USD = ? IQD). The books stay in the base currency; the dollars and rate are kept on the entry.
 - Posting a date outside every fiscal year opens that year automatically. Closed periods still refuse.
 - Receipt, payment, journal and transfer vouchers; posting a voucher creates its balanced journal entry exactly once.

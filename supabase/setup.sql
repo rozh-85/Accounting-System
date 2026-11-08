@@ -6237,7 +6237,7 @@ revoke execute on function public._seed_dalil_chart(uuid) from public, anon, aut
 -- 1. A posted journal entry can now be edited or deleted by a user who may both
 --    edit drafts and reverse entries, while its period is open. The change hits
 --    the ledger at once and the previous figures are kept in the audit log.
---    Entries owned by a voucher, a reversal or a year-end close stay locked.
+--    Any entry can be deleted; only one that belongs to a voucher cannot be edited.
 -- 2. An entry can be typed in US dollars with the day's rate. The books stay in
 --    the company's base currency: each line is converted when it is saved, and
 --    the typed dollars and the rate are kept beside it. exchange_rate means
@@ -6474,8 +6474,7 @@ alter function public._voucher_journal_lines(public.vouchers) volatile;
 -- ---------------------------------------------------------------------------
 -- Helpers for saving
 -- ---------------------------------------------------------------------------
--- Stops a posted entry being changed unless this user may and the entry is free
--- to change. Rejects a closed period.
+-- Stops a non-draft entry being changed unless this user may. Rejects a closed period.
 create or replace function public._assert_posted_changeable(p_entry public.journal_entries)
 returns void
 language plpgsql security definer
@@ -6483,10 +6482,6 @@ set search_path = ''
 as $$
 begin
   perform public._require_permission(p_entry.company_id, 'entries.reverse');
-  if p_entry.source not in ('manual', 'recurring') or p_entry.entry_type = 'closing'
-     or p_entry.voucher_id is not null or p_entry.reversal_of_id is not null or p_entry.reversed_entry_id is not null then
-    perform public._raise('ENTRY_NOT_EDITABLE', p_entry.entry_number);
-  end if;
   perform public._open_period_for(p_entry.company_id, p_entry.entry_date);
 end;
 $$;
@@ -6641,7 +6636,10 @@ begin
     if not found then
       perform public._raise('ENTRY_NOT_FOUND');
     end if;
-    if v_entry.status = 'posted' then
+    if v_entry.status in ('posted', 'reversed') then
+      if v_entry.voucher_id is not null then
+        perform public._raise('ENTRY_NOT_EDITABLE', v_entry.entry_number);  -- the voucher would no longer match
+      end if;
       perform public._assert_posted_changeable(v_entry);
       v_posted_edit := true;
       v_before := public._entry_snapshot(v_entry.id);
@@ -6692,6 +6690,9 @@ begin
 end;
 $$;
 
+-- Deletes any entry whose period is open. What it is linked to goes with it: a
+-- reversed entry takes its reversal, deleting a reversal puts the original back
+-- to posted, and an entry that belongs to a voucher takes the voucher.
 create or replace function public.delete_journal_entry(p_entry_id uuid)
 returns text[]
 language plpgsql security definer
@@ -6699,22 +6700,75 @@ set search_path = ''
 as $$
 declare
   v_entry public.journal_entries%rowtype;
+  v_pair public.journal_entries%rowtype;
+  v_voucher public.vouchers%rowtype;
   v_paths text[];
+  v_voucher_paths text[];
   v_before jsonb;
+  v_table text;
+  v_tables text[] := array['journal_entries', 'journal_entry_lines', 'vouchers', 'voucher_lines'];
 begin
   v_entry := public._load_entry_for_action(p_entry_id, 'entries.edit_draft');
-  if v_entry.status = 'posted' then
+  if v_entry.status <> 'draft' then
     perform public._assert_posted_changeable(v_entry);
-    perform set_config('vio.posted_edit', v_entry.id::text, true);
-  elsif v_entry.status <> 'draft' then
-    perform public._raise('ENTRY_NOT_EDITABLE', v_entry.entry_number);
   end if;
   v_before := public._entry_snapshot(v_entry.id);
   select coalesce(array_agg(a.storage_path), '{}') into v_paths
     from public.attachments a where a.entity_type = 'journal_entry' and a.entity_id = p_entry_id;
   delete from public.attachments a where a.entity_type = 'journal_entry' and a.entity_id = p_entry_id;
-  delete from public.journal_entries e where e.id = p_entry_id;
-  perform set_config('vio.posted_edit', '', true);
+
+  if v_entry.voucher_id is null and v_entry.reversal_of_id is null and v_entry.reversed_entry_id is null then
+    perform set_config('vio.posted_edit', v_entry.id::text, true);
+    delete from public.journal_entries e where e.id = p_entry_id;
+    perform set_config('vio.posted_edit', '', true);
+  else
+    if v_entry.reversed_entry_id is not null then
+      select * into v_pair from public.journal_entries e where e.id = v_entry.reversed_entry_id for update;
+      perform public._open_period_for(v_pair.company_id, v_pair.entry_date);
+    end if;
+
+    -- Several linked documents change together, so the guards stay off for the
+    -- rest of this transaction; the table lock makes other writers wait.
+    foreach v_table in array v_tables loop
+      execute format('alter table public.%I disable trigger user', v_table);
+    end loop;
+
+    if v_entry.reversal_of_id is not null then
+      update public.journal_entries e
+         set status = 'posted', reversed_by = null, reversed_at = null, reversed_entry_id = null
+       where e.id = v_entry.reversal_of_id;
+      update public.vouchers v
+         set status = 'posted', reversed_by = null, reversed_at = null
+       where v.journal_entry_id = v_entry.reversal_of_id;
+    end if;
+
+    if v_entry.reversed_entry_id is not null then
+      update public.journal_entries e set reversed_entry_id = null where e.id = v_entry.id;
+      delete from public.journal_entries e where e.id = v_pair.id;
+      perform public._audit(v_entry.company_id, 'journal_entry', v_pair.id, v_pair.entry_number, 'deleted',
+        jsonb_build_object('status', v_pair.status, 'reversal_of', v_entry.entry_number));
+    end if;
+
+    if v_entry.voucher_id is not null then
+      select * into v_voucher from public.vouchers x where x.id = v_entry.voucher_id for update;
+      select coalesce(array_agg(a.storage_path), '{}') into v_voucher_paths
+        from public.attachments a where a.entity_type = 'voucher' and a.entity_id = v_voucher.id;
+      v_paths := v_paths || v_voucher_paths;
+      delete from public.attachments a where a.entity_type = 'voucher' and a.entity_id = v_voucher.id;
+      update public.vouchers x set journal_entry_id = null where x.id = v_voucher.id;
+      update public.journal_entries e set voucher_id = null where e.id = v_entry.id;
+      delete from public.vouchers x where x.id = v_voucher.id;
+      perform public._audit(v_entry.company_id, 'voucher', v_voucher.id, v_voucher.voucher_number, 'deleted',
+        jsonb_build_object('status', v_voucher.status, 'journal_entry', v_entry.entry_number));
+    end if;
+
+    delete from public.journal_entries e where e.id = p_entry_id;
+
+    foreach v_table in array v_tables loop
+      execute format('alter table public.%I enable trigger user', v_table);
+    end loop;
+  end if;
+
   perform public._audit(v_entry.company_id, 'journal_entry', v_entry.id, v_entry.entry_number, 'deleted',
     jsonb_build_object('status', v_entry.status, 'before', v_before));
   return v_paths;

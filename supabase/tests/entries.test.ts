@@ -86,12 +86,13 @@ describe('editing a posted entry', () => {
     await rpc(db, admin, 'reopen_accounting_period', [period, 'Done testing']);
   });
 
-  it('is refused for reversed entries and reversals', async () => {
+  it('works on reversed entries and on reversals', async () => {
     const id = await post('2026-03-10');
     const reversal = await rpc<string>(db, admin, 'reverse_journal_entry', [id, '2026-03-11', 'Mistake']);
-    await expectDbError(save(admin, header('2026-03-10', 'No'), [line(rent, 2, 0), line(cash, 0, 2)], id), 'ENTRY_NOT_EDITABLE');
-    await expectDbError(save(admin, header('2026-03-11', 'No'), [line(rent, 2, 0), line(cash, 0, 2)], reversal), 'ENTRY_NOT_EDITABLE');
-    await expectDbError(rpc(db, admin, 'delete_journal_entry', [reversal]), 'ENTRY_NOT_EDITABLE');
+    await save(admin, header('2026-03-10', 'Edited'), [line(rent, 2, 0), line(cash, 0, 2)], id);
+    expect((await get(id)).status).toBe('reversed');
+    await save(admin, header('2026-03-11', 'Edited'), [line(rent, 0, 2), line(cash, 2, 0)], reversal);
+    expect(Number((await get(reversal)).total_debit)).toBe(2);
   });
 
   it('is refused for an entry that belongs to a voucher', async () => {
@@ -99,7 +100,6 @@ describe('editing a posted entry', () => {
     await rpc(db, admin, 'post_voucher', [voucher]);
     const entry = (await db.query<{ id: string }>(`select id from public.journal_entries where voucher_id = $1`, [voucher])).rows[0].id;
     await expectDbError(save(admin, header('2026-03-14', 'No'), [line(rent, 2, 0), line(cash, 0, 2)], entry), 'ENTRY_NOT_EDITABLE');
-    await expectDbError(rpc(db, admin, 'delete_journal_entry', [entry]), 'ENTRY_NOT_EDITABLE');
   });
 
   it('still blocks a direct change to a posted entry', async () => {
@@ -121,6 +121,67 @@ describe('deleting a posted entry', () => {
     const audit = await db.query<{ details: { status: string; before: { total: string } } }>(`select details from public.audit_logs where entity_id = $1 and action = 'deleted'`, [id]);
     expect(audit.rows[0].details.status).toBe('posted');
     expect(Number(audit.rows[0].details.before.total)).toBe(700);
+  });
+});
+
+describe('deleting linked entries', () => {
+  const exists = async (table: string, id: string) => (await db.query(`select 1 from public.${table} where id = $1`, [id])).rows.length > 0;
+  const guardsOn = async () => (await db.query(`select 1 from pg_trigger t where t.tgrelid in ('public.journal_entries'::regclass, 'public.journal_entry_lines'::regclass, 'public.vouchers'::regclass, 'public.voucher_lines'::regclass) and t.tgenabled = 'D' and not t.tgisinternal`)).rows.length === 0;
+  const postVoucher = async () => {
+    const voucher = await rpc<string>(db, admin, 'save_voucher', [company, null, j({ voucher_type: 'receipt', voucher_date: '2026-08-14', party_name: 'Guest', cash_account_id: cash, counter_account_id: capital, amount: 50, description: 'Receipt' }), j([])]);
+    await rpc(db, admin, 'post_voucher', [voucher]);
+    return { voucher, entry: (await db.query<{ id: string }>(`select id from public.journal_entries where voucher_id = $1`, [voucher])).rows[0].id };
+  };
+
+  it('deleting a reversed entry removes its reversal and leaves the ledger as if neither happened', async () => {
+    const before = await cashBalance();
+    const id = await post('2026-08-10', 300);
+    const reversal = await rpc<string>(db, admin, 'reverse_journal_entry', [id, '2026-08-11', 'Mistake']);
+    await rpc(db, admin, 'delete_journal_entry', [id]);
+    expect(await exists('journal_entries', id)).toBe(false);
+    expect(await exists('journal_entries', reversal)).toBe(false);
+    expect(await cashBalance()).toBe(before);
+    expect(await guardsOn()).toBe(true);
+  });
+
+  it('deleting a reversal puts the original back to posted, and it can be reversed again', async () => {
+    const id = await post('2026-08-10', 300);
+    const reversal = await rpc<string>(db, admin, 'reverse_journal_entry', [id, '2026-08-11', 'Mistake']);
+    await rpc(db, admin, 'delete_journal_entry', [reversal]);
+    const entry = await get(id);
+    expect(entry.status).toBe('posted');
+    expect(entry.reversed_entry_id).toBeNull();
+    await rpc(db, admin, 'reverse_journal_entry', [id, '2026-08-12', 'Again']);
+    expect((await get(id)).status).toBe('reversed');
+  });
+
+  it('deleting a voucher entry removes the voucher too', async () => {
+    const before = await cashBalance();
+    const { voucher, entry } = await postVoucher();
+    await rpc(db, admin, 'delete_journal_entry', [entry]);
+    expect(await exists('vouchers', voucher)).toBe(false);
+    expect(await exists('journal_entries', entry)).toBe(false);
+    expect(await cashBalance()).toBe(before);
+    expect(await guardsOn()).toBe(true);
+  });
+
+  it('deleting the reversal of a voucher entry puts the voucher back to posted', async () => {
+    const { voucher, entry } = await postVoucher();
+    const reversal = await rpc<string>(db, admin, 'reverse_journal_entry', [entry, '2026-08-15', 'Mistake']);
+    await rpc(db, admin, 'delete_journal_entry', [reversal]);
+    const row = await db.query<{ status: string }>(`select status from public.vouchers where id = $1`, [voucher]);
+    expect(row.rows[0].status).toBe('posted');
+  });
+
+  it('is still refused without the right, and in a closed period', async () => {
+    const id = await post('2026-09-10', 5);
+    const reversal = await rpc<string>(db, admin, 'reverse_journal_entry', [id, '2026-10-02', 'Mistake']);
+    await expectDbError(rpc(db, accountant, 'delete_journal_entry', [id]), 'PERMISSION_DENIED');
+    const period = (await db.query<{ id: string }>(`select id from public.accounting_periods where company_id = $1 and name = '2026-10'`, [company])).rows[0].id;
+    await rpc(db, admin, 'close_accounting_period', [period]);
+    await expectDbError(rpc(db, admin, 'delete_journal_entry', [id]), 'PERIOD_CLOSED');
+    await expectDbError(rpc(db, admin, 'delete_journal_entry', [reversal]), 'PERIOD_CLOSED');
+    await rpc(db, admin, 'reopen_accounting_period', [period, 'Done']);
   });
 });
 

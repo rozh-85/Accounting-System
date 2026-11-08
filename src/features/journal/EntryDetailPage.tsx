@@ -15,7 +15,7 @@ import { formatUnits, toUnits } from '@/lib/accounting';
 import { formatDate, formatDateTime, formatPeriodName, formatRate, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { ReportDialog } from '@/features/reports/ReportDialog';
-import { entryChangeable, FOREIGN_CURRENCY, useEntryAction, useJournalEntry } from './api';
+import { entryDeletable, entryEditable, entryHasLinks, FOREIGN_CURRENCY, useEntryAction, useJournalEntry } from './api';
 import { AttachmentsPanel } from './components/AttachmentsPanel';
 import { BalanceIndicator } from './components/BalanceIndicator';
 import { HistoryTimeline } from './components/HistoryTimeline';
@@ -51,7 +51,8 @@ export function EntryDetailPage() {
   const entry = query.data;
   const isDraft = entry.status === 'draft';
   const isPending = entry.status === 'pending_approval';
-  const changeable = entryChangeable(entry, can);
+  const editable = entryEditable(entry, can);
+  const deletable = entryDeletable(entry, can);
   const foreignTotal = entry.foreign_currency ? entry.lines.reduce((sum, l) => sum + toUnits(l.foreign_debit), 0n) : null;
   const requireApproval = settings?.require_approval ?? true;
   const canPostDirectly = can('entries.post') && (!requireApproval || can('entries.approve'));
@@ -99,15 +100,15 @@ export function EntryDetailPage() {
             <Button icon={<Printer size={15} />} onClick={() => setDialog('print')}>
               {t('common.print')}
             </Button>
-            {changeable && (
-              <>
-                <Button variant="danger" icon={<Trash2 size={15} />} onClick={() => setDialog('delete')}>
-                  {isDraft ? t('journal.deleteDraft') : t('common.delete')}
-                </Button>
-                <ButtonLink to={`/journal/entries/${entry.id}/edit`} icon={<Pencil size={15} />}>
-                  {t('common.edit')}
-                </ButtonLink>
-              </>
+            {deletable && (
+              <Button variant="danger" icon={<Trash2 size={15} />} onClick={() => setDialog('delete')}>
+                {isDraft ? t('journal.deleteDraft') : t('common.delete')}
+              </Button>
+            )}
+            {editable && (
+              <ButtonLink to={`/journal/entries/${entry.id}/edit`} icon={<Pencil size={15} />}>
+                {t('common.edit')}
+              </ButtonLink>
             )}
             {isDraft && can('entries.submit') && (requireApproval || !canPostDirectly) && (
               <Button variant="primary" icon={<Send size={15} />} loading={action.isPending} onClick={() => void run({ type: 'submit', id: entry.id }, t('journal.submittedToast'))}>
@@ -258,6 +259,7 @@ export function EntryDetailPage() {
         }
       >
         <p className="text-[13.5px] text-ink-soft">{t(isDraft ? 'journal.deleteBody' : 'journal.deletePostedBody')}</p>
+        {entryHasLinks(entry) && <p className="mt-2 text-[13.5px] font-medium text-ink">{t('journal.deleteLinkedNote')}</p>}
       </Dialog>
       <ReportDialog
         open={dialog === 'print'}
