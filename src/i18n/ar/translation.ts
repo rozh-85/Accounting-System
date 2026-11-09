@@ -193,6 +193,7 @@ export const ar = {
     noMovements: 'لا توجد حركات مرحّلة في هذه الفترة',
   },
   trialBalance: {
+    searchPlaceholder: 'ابحث في دليل الحسابات بالرمز أو الاسم', totalAll: 'مجموع كل الحسابات',
     period: 'الفترة', fiscalYear: 'السنة المالية', customRange: 'مدة مخصصة', type: 'نوع الميزان', view: 'العرض',
     level: 'مستوى الإجمالي', levelN: 'المستوى {{level}}', includeZero: 'إظهار الأرصدة الصفرية',
     modes: { unadjusted: 'قبل التسويات', adjusted: 'بعد التسويات', post_closing: 'بعد الإقفال' },

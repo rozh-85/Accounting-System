@@ -22,8 +22,10 @@ interface FilterBarProps {
   more?: ReactNode;
   /** How many of the `more` filters are in use, shown on the button. */
   moreCount?: number;
-  canClear: boolean;
-  onClear: () => void;
+  canClear?: boolean;
+  onClear?: () => void;
+  /** A second row that is always visible, for view switches and page actions. */
+  children?: ReactNode;
 }
 
 function DateFilter({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
@@ -48,8 +50,9 @@ export function FilterBar({
   primary,
   more,
   moreCount = 0,
-  canClear,
+  canClear = false,
   onClear,
+  children,
 }: FilterBarProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(moreCount > 0);
@@ -110,6 +113,7 @@ export function FilterBar({
         )}
       </div>
       {more && open && <div className="mt-2.5 grid grid-cols-1 gap-2.5 border-t border-line pt-2.5 sm:grid-cols-2 xl:grid-cols-4">{more}</div>}
+      {children && <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2.5 border-t border-line pt-2.5">{children}</div>}
     </Card>
   );
 }

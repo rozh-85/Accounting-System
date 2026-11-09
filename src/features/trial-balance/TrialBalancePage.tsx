@@ -5,17 +5,18 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
+import { FilterBar } from '@/components/tables/FilterBar';
 import { Button } from '@/components/ui/Button';
 import { Alert, Card, EmptyState } from '@/components/ui/Card';
-import { Checkbox, Input, Select } from '@/components/ui/Field';
+import { Checkbox, Select } from '@/components/ui/Field';
 import { PageLoader } from '@/components/ui/Spinner';
 import { Segmented } from '@/components/ui/Tabs';
 import { fiscalYearFor, useAccounts, useFiscalYears, usePeriods } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useReportIdentity } from '@/hooks/useReportIdentity';
-import { absUnits, buildTrialBalance, formatUnits, sumsByAccount, type AccountBalanceRow, type TrialBalanceMode, type Units } from '@/lib/accounting';
+import { absUnits, buildTrialBalance, formatUnits, sumsByAccount, type Account, type AccountBalanceRow, type TrialBalanceMode, type Units } from '@/lib/accounting';
 import { downloadCsv } from '@/lib/csv';
-import { formatPeriodName, startOfYear, todayIso } from '@/lib/formatting';
+import { formatPeriodName, normalizeSearch, startOfYear, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import { RoomHeading } from '@/features/ledger/LedgerPage';
@@ -32,6 +33,7 @@ export function TrialBalancePage() {
   const { periods } = usePeriods();
   const [params, setParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
+  const [search, setSearch] = useState(params.get('q') ?? '');
 
   const today = todayIso();
   const currentYear = fiscalYearFor(fiscalYears, today);
@@ -59,6 +61,27 @@ export function TrialBalancePage() {
     () => (balances.data ? buildTrialBalance(accounts, sumsByAccount(balances.data), { view, summaryLevel, includeZero }) : null),
     [balances.data, accounts, view, summaryLevel, includeZero],
   );
+
+  // Searching covers the whole chart, including accounts with no balance yet. Each
+  // match keeps its group accounts above it, so it reads like the full report.
+  const query = normalizeSearch(search);
+  const rows = useMemo(() => {
+    if (!query) return result?.rows ?? [];
+    if (!balances.data) return [];
+    const all = buildTrialBalance(accounts, sumsByAccount(balances.data), { view, summaryLevel, includeZero: true }).rows;
+    const byId = new Map(accounts.map((a) => [a.id, a]));
+    const shown = new Set<string>();
+    for (const { account } of all) {
+      if (account.code.toLowerCase().startsWith(query) || normalizeSearch(account.name_en).includes(query) || normalizeSearch(account.name_ar).includes(query)) {
+        let current: Account | undefined = account;
+        while (current && !shown.has(current.id)) {
+          shown.add(current.id);
+          current = current.parent_id ? byId.get(current.parent_id) : undefined;
+        }
+      }
+    }
+    return all.filter((row) => shown.has(row.account.id));
+  }, [query, result, balances.data, accounts, view, summaryLevel]);
 
   const periodOptions = useMemo(() => {
     const options: Array<{ value: string; label: string; from: string; to: string }> = [];
@@ -94,76 +117,68 @@ export function TrialBalancePage() {
     <>
       <RoomHeading number="03" roomKey="trialBalance" />
 
-      <Card className="mb-4 p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-[220px] flex-col gap-1 text-[12px] text-muted">
-            {t('trialBalance.period')}
-            <Select
-              value={selectedPeriod}
-              onChange={(e) => {
-                const option = periodOptions.find((o) => o.value === e.target.value);
-                if (option) update({ from: option.from, to: option.to });
-              }}
-            >
-              <option value="custom">{t('trialBalance.customRange')}</option>
-              {periodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </Select>
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.from')}
-            <Input type="date" className="num w-[150px]" value={from} onChange={(e) => update({ from: e.target.value })} />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('common.to')}
-            <Input type="date" className="num w-[150px]" value={to} onChange={(e) => update({ to: e.target.value })} />
-          </label>
-          <div className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('trialBalance.type')}
-            <Segmented
-              value={mode}
-              onChange={(m) => update({ mode: m === 'adjusted' ? null : m })}
-              options={(['unadjusted', 'adjusted', 'post_closing'] as const).map((m) => ({ value: m, label: t(`trialBalance.modes.${m}`) }))}
-            />
-          </div>
-          <div className="flex flex-col gap-1 text-[12px] text-muted">
-            {t('trialBalance.view')}
-            <Segmented
-              value={view}
-              onChange={(v) => update({ view: v === 'summary' ? 'summary' : null })}
-              options={[
-                { value: 'detailed', label: t('common.detailed') },
-                { value: 'summary', label: t('common.summary') },
-              ]}
-            />
-          </div>
-          {view === 'summary' && (
-            <label className="flex flex-col gap-1 text-[12px] text-muted">
-              {t('trialBalance.level')}
-              <Select className="w-[120px]" value={String(summaryLevel)} onChange={(e) => update({ level: e.target.value === '2' ? null : e.target.value })}>
-                {[1, 2, 3].map((l) => <option key={l} value={l}>{t('trialBalance.levelN', { level: l })}</option>)}
-              </Select>
-            </label>
-          )}
-          <Checkbox className="mb-2" label={t('trialBalance.includeZero')} checked={includeZero} onChange={(e) => update({ zero: e.target.checked ? '1' : null })} />
-          <div className="ms-auto flex gap-2">
-            <Button icon={<FileSpreadsheet size={15} />} onClick={exportCsv} disabled={!result}>{t('common.exportCsv')}</Button>
-            {can('reports.export') && <Button icon={<FileDown size={15} />} onClick={() => setReportOpen(true)} disabled={!result}>{t('common.exportPdf')}</Button>}
-          </div>
+      <FilterBar
+        search={search}
+        onSearchChange={setSearch}
+        onSearchCommit={() => search.trim() !== (params.get('q') ?? '') && update({ q: search.trim() || null })}
+        searchPlaceholder={t('trialBalance.searchPlaceholder')}
+        from={from}
+        to={to}
+        onFromChange={(value) => update({ from: value })}
+        onToChange={(value) => update({ to: value })}
+        primary={
+          <Select
+            aria-label={t('trialBalance.period')}
+            value={selectedPeriod}
+            onChange={(e) => {
+              const option = periodOptions.find((o) => o.value === e.target.value);
+              if (option) update({ from: option.from, to: option.to });
+            }}
+          >
+            <option value="custom">{t('trialBalance.customRange')}</option>
+            {periodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </Select>
+        }
+      >
+        <Segmented
+          label={t('trialBalance.type')}
+          value={mode}
+          onChange={(m) => update({ mode: m === 'adjusted' ? null : m })}
+          options={(['unadjusted', 'adjusted', 'post_closing'] as const).map((m) => ({ value: m, label: t(`trialBalance.modes.${m}`) }))}
+        />
+        <Segmented
+          label={t('trialBalance.view')}
+          value={view}
+          onChange={(v) => update({ view: v === 'summary' ? 'summary' : null })}
+          options={[
+            { value: 'detailed', label: t('common.detailed') },
+            { value: 'summary', label: t('common.summary') },
+          ]}
+        />
+        {view === 'summary' && (
+          <Select aria-label={t('trialBalance.level')} className="w-[130px]" value={String(summaryLevel)} onChange={(e) => update({ level: e.target.value === '2' ? null : e.target.value })}>
+            {[1, 2, 3].map((l) => <option key={l} value={l}>{t('trialBalance.levelN', { level: l })}</option>)}
+          </Select>
+        )}
+        <Checkbox label={t('trialBalance.includeZero')} checked={includeZero} onChange={(e) => update({ zero: e.target.checked ? '1' : null })} />
+        <div className="flex w-full gap-2 sm:ms-auto sm:w-auto">
+          <Button className="flex-1 sm:flex-none" icon={<FileSpreadsheet size={15} />} onClick={exportCsv} disabled={!result}>{t('common.exportCsv')}</Button>
+          {can('reports.export') && <Button className="flex-1 sm:flex-none" icon={<FileDown size={15} />} onClick={() => setReportOpen(true)} disabled={!result}>{t('common.exportPdf')}</Button>}
         </div>
-      </Card>
+      </FilterBar>
 
       {accountsLoading || balances.isLoading ? (
         <PageLoader />
       ) : balances.error ? (
         <Alert tone="danger">{errorMessage(balances.error, t)}</Alert>
-      ) : !result || result.rows.length === 0 ? (
+      ) : !result || (result.rows.length === 0 && !query) ? (
         <Card><EmptyState title={t('trialBalance.empty')} description={t('trialBalance.emptyHint')} /></Card>
       ) : (
         <>
           <div
             role="status"
             className={clsx(
-              'mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[12px] border px-4 py-3 text-[13px]',
+              'mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-[12px] border px-4 py-2.5 text-[13px]',
               result.isBalanced ? 'border-success-line bg-success-soft text-success-strong' : 'border-danger-line bg-danger-soft text-danger',
             )}
           >
@@ -176,10 +191,13 @@ export function TrialBalancePage() {
                 {t('trialBalance.differences')}: {t('trialBalance.opening')} {fmtTotal(absUnits(result.differences.opening))} · {t('trialBalance.movement')} {fmtTotal(absUnits(result.differences.period))} · {t('trialBalance.closing')} {fmtTotal(absUnits(result.differences.closing))}
               </span>
             )}
-            <span className="text-[12px] font-normal text-ink-soft">{t('trialBalance.disclaimer')}</span>
+            <span className="text-[12px] font-normal text-ink-soft sm:ms-auto">{t('trialBalance.disclaimer')}</span>
           </div>
 
           <Card className="overflow-hidden">
+            {rows.length === 0 ? (
+              <EmptyState title={t('accounts.empty')} description={t('common.adjustFilters')} />
+            ) : (
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full min-w-[1080px] border-collapse text-[13px]">
                 <thead className="bg-subtle">
@@ -192,13 +210,13 @@ export function TrialBalancePage() {
                   </tr>
                   <tr>
                     {[0, 1, 2].flatMap((g) => [
-                      <th key={`${g}d`} className={clsx(head, 'w-[128px] border-s border-line text-end')}>{t('journal.debit')}</th>,
-                      <th key={`${g}c`} className={clsx(head, 'w-[128px] text-end', g === 2 && 'pe-5')}>{t('journal.credit')}</th>,
+                      <th key={`${g}d`} className={clsx(head, 'w-[10.5%] border-s border-line text-end')}>{t('journal.debit')}</th>,
+                      <th key={`${g}c`} className={clsx(head, 'w-[10.5%] text-end', g === 2 && 'pe-5')}>{t('journal.credit')}</th>,
                     ])}
                   </tr>
                 </thead>
                 <tbody>
-                  {result.rows.map((row) => (
+                  {rows.map((row) => (
                     <tr
                       key={row.account.id}
                       tabIndex={row.isGroup ? undefined : 0}
@@ -218,7 +236,7 @@ export function TrialBalancePage() {
                 <tfoot>
                   <tr className="bg-subtle font-semibold">
                     <td className="border-t-2 border-ink py-2.5 ps-5" />
-                    <td className="border-t-2 border-ink px-3 py-2.5">{t('common.total')}</td>
+                    <td className="border-t-2 border-ink px-3 py-2.5">{query ? t('trialBalance.totalAll') : t('common.total')}</td>
                     {[result.totals.openingDebit, result.totals.openingCredit, result.totals.periodDebit, result.totals.periodCredit, result.totals.closingDebit, result.totals.closingCredit].map((v, i) => (
                       <td key={i} className={clsx('num border-t-2 border-ink px-3 py-2.5 text-end', i % 2 === 0 && 'border-s border-s-line', i === 5 && 'pe-5')}>{fmtTotal(v)}</td>
                     ))}
@@ -226,6 +244,7 @@ export function TrialBalancePage() {
                 </tfoot>
               </table>
             </div>
+            )}
           </Card>
         </>
       )}

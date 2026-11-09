@@ -193,6 +193,7 @@ export const en = {
   },
   trialBalance: {
     period: 'Period', fiscalYear: 'Fiscal year', customRange: 'Custom date range', type: 'Trial balance', view: 'View',
+    searchPlaceholder: 'Search the chart by code or name', totalAll: 'Total of all accounts',
     level: 'Summary level', levelN: 'Level {{level}}', includeZero: 'Include zero balances',
     modes: { unadjusted: 'Unadjusted', adjusted: 'Adjusted', post_closing: 'Post-closing' },
     opening: 'Opening balance', movement: 'Period movement', closing: 'Closing balance',
