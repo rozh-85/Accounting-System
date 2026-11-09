@@ -81,6 +81,23 @@
   --shadow-primary: 0 6px 16px -6px rgb(207 53 48 / 0.55);
 }
 
+@layer components {
+  /* Dropdowns draw their own arrow so it keeps the same gap from the edge as the
+     text does, in both reading directions. Browsers push theirs against the border. */
+  .select-control {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 16px;
+    background-position: right 14px center;
+  }
+  [dir='rtl'] .select-control {
+    background-position: left 14px center;
+  }
+}
+
 @layer base {
   html {
     color: var(--color-ink);

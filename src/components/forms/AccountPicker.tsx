@@ -174,10 +174,10 @@ export function AccountPicker({
             leave();
           }
         }}
-        className={clsx(controlClass, 'h-9 truncate pe-8')}
+        className={clsx(controlClass, 'h-9 truncate pe-10')}
         {...aria}
       />
-      <ChevronsUpDown size={14} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+      <ChevronsUpDown size={14} className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
       </div>
       {notChosen && <p className="mt-1 text-[11.5px] text-danger">{t('accountPicker.notChosen')}</p>}
       {open && !disabled && (

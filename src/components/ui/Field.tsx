@@ -58,7 +58,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   ref,
 ) {
   return (
-    <select ref={ref} className={clsx(controlClass, 'h-10 pe-8', className)} {...rest}>
+    <select ref={ref} className={clsx(controlClass, 'select-control h-10 pe-10', className)} {...rest}>
       {children}
     </select>
   );
