@@ -8,6 +8,34 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Vio Accounting</title>
+    <script>
+      // If a new version goes live while this page loads, its files can fail to
+      // arrive. Try again once; if that fails too, say so instead of a white page.
+      window.addEventListener(
+        'error',
+        function (event) {
+          var el = event.target;
+          if (!el || (el.tagName !== 'SCRIPT' && el.tagName !== 'LINK')) return;
+          if (!/\/assets\//.test(el.src || el.href || '')) return;
+          var key = 'vio.assetReload';
+          var last = 0;
+          try {
+            last = Number(sessionStorage.getItem(key)) || 0;
+            if (Date.now() - last > 10000) {
+              sessionStorage.setItem(key, String(Date.now()));
+              location.reload();
+              return;
+            }
+          } catch (e) {}
+          var root = document.getElementById('root');
+          if (root) {
+            root.style.cssText = 'padding:64px 16px;text-align:center;font:15px/1.8 system-ui,sans-serif;color:#344054';
+            root.textContent = 'Could not load the page. Please refresh it. — تعذّر تحميل الصفحة، يرجى تحديثها.';
+          }
+        },
+        true,
+      );
+    </script>
   </head>
   <body>
     <div id="root"></div>
