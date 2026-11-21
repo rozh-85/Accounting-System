@@ -229,7 +229,16 @@ export function EntriesListPage() {
                     onClick={() => navigate(`/journal/entries/${row.id}`)}
                     onKeyDown={(e) => e.key === 'Enter' && navigate(`/journal/entries/${row.id}`)}
                   >
-                    <Td className="num font-medium text-ink">{row.entry_number}</Td>
+                    <Td className="num font-medium text-ink">
+                      <span className="inline-flex items-center gap-2">
+                        {row.entry_number}
+                        {Number(row.edit_count ?? 0) > 0 && (
+                          <span className="rounded bg-hover px-1.5 text-[11px] font-semibold text-ink-soft" title={t('versions.versionN', { version: `1.${row.edit_count}` })}>
+                            1.{row.edit_count}
+                          </span>
+                        )}
+                      </span>
+                    </Td>
                     <Td className="num text-ink-soft">{formatDate(row.entry_date)}</Td>
                     <Td><EntryTypeBadge type={row.entry_type} /></Td>
                     <Td className="num text-ink-soft">{row.voucher_number ?? <span className="text-faint">—</span>}</Td>

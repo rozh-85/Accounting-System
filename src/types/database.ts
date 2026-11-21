@@ -128,6 +128,8 @@ export interface JournalListRow {
   posted_at: string | null;
   reversal_of_id: string | null;
   attachment_count: number;
+  /** How many times the entry was edited after it was first saved. */
+  edit_count?: number;
   total_count: number;
 }
 

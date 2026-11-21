@@ -362,6 +362,43 @@ describe('the company dollar rate', () => {
   });
 });
 
+describe('entry versions', () => {
+  type Edit = { action: string; actor_id: string; details: { version: number; before: Record<string, any>; after: Record<string, any> } };
+  const edits = async (id: string) => ((await get(id)).history as Edit[]).filter((h) => h.action === 'updated' || h.action === 'edited_after_posting');
+
+  it('numbers every edit and keeps who changed what, before and after posting', async () => {
+    const second = await createUser(db, 'Second Admin');
+    await rpc(db, admin, 'add_company_member', [company, second.email, 'admin']);
+
+    const id = await save(admin, header('2026-07-25', 'First'), [line(rent, 100, 0), line(cash, 0, 100)]);
+    await save(admin, header('2026-07-26', 'Second'), [line(rent, 100, 0), line(cash, 0, 100)], id);
+    await rpc(db, admin, 'post_journal_entry', [id]);
+    await save(second, header('2026-07-26', 'Second'), [line(rent, 250, 0), line(capital, 0, 250)], id);
+
+    const list = await edits(id);
+    expect(list.map((e) => e.details.version)).toEqual([1, 2]);
+    expect(list.map((e) => e.action)).toEqual(['updated', 'edited_after_posting']);
+    expect(list[0].actor_id).toBe(admin.id);
+    expect(list[1].actor_id).toBe(second.id);
+    expect(list[0].details.before.entry_date).toBe('2026-07-25');
+    expect(list[0].details.after.entry_date).toBe('2026-07-26');
+    expect(list[0].details.after.description).toBe('Second');
+    expect(list[1].details.before.lines.map((l: { account: string }) => l.account)).toEqual(['3352', '1811']);
+    expect(list[1].details.after.lines.map((l: { account: string }) => l.account)).toEqual(['3352', '211']);
+    expect(Number(list[1].details.after.lines[0].debit)).toBe(250);
+
+    const rows = await asUser(db, admin, (tx) =>
+      tx.query<{ id: string; edit_count: number }>(`select id, edit_count from public.search_journal_entries($1, null, '2026-07-25', '2026-07-26')`, [company]));
+    expect(rows.rows.find((r) => r.id === id)?.edit_count).toBe(2);
+    expect((await get(id)).entry_number).toMatch(/^JE-2026-\d{5}$/);
+  });
+
+  it('does not count status changes or a new entry as edits', async () => {
+    const id = await post('2026-07-27');
+    expect(await edits(id)).toHaveLength(0);
+  });
+});
+
 describe('internal helpers', () => {
   it('are not callable through the API', async () => {
     await expectDbError(asUser(db, admin, (tx) => tx.query(`select public._create_period_for($1, '2020-01-01')`, [company])), /permission denied/);

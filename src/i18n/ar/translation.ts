@@ -181,6 +181,13 @@ export const ar = {
       attachment_removed: 'إزالة مرفق', reopened: 'إعادة فتح', edited_after_posting: 'عُدّل بعد الترحيل', insert: 'إنشاء', update: 'تعديل', delete: 'حذف',
     },
   },
+  versions: {
+    title: 'سجل التعديلات', none: 'الإصدار 1 — لم يُعدَّل منذ حفظه أول مرة.',
+    summary: 'عُدِّل {{count}} مرة — هذا الإصدار {{version}}', versionN: 'الإصدار {{version}}',
+    original: 'الحفظ الأول', editedDraft: 'تعديل', editedPosted: 'تعديل بعد الترحيل',
+    added: 'أُضيف', removed: 'حُذف', noChanges: 'حُفظ مرة أخرى دون تغيير.',
+    notRecorded: 'عُدِّل قبل بدء تسجيل الإصدارات، لذلك لم تُسجَّل تفاصيل التغيير.',
+  },
   ledger: {
     dailyView: 'سجل الأستاذ', totalDebit: 'مجموع المدين', totalCredit: 'مجموع الدائن', debitBalance: 'الرصيد المدين', creditBalance: 'الرصيد الدائن',
     previousBalance: 'الرصيد السابق', openDay: 'عرض تفاصيل هذا اليوم',

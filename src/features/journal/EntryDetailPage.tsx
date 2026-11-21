@@ -21,6 +21,8 @@ import { BalanceIndicator } from './components/BalanceIndicator';
 import { HistoryTimeline } from './components/HistoryTimeline';
 import { JournalPresentation } from './components/JournalPresentation';
 import { ReasonDialog } from './components/ReasonDialog';
+import { VersionsCard } from './components/VersionsCard';
+import { buildVersions } from './versions';
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -53,6 +55,7 @@ export function EntryDetailPage() {
   const isPending = entry.status === 'pending_approval';
   const editable = entryEditable(entry, can);
   const deletable = entryDeletable(entry, can);
+  const currentVersion = buildVersions(entry).at(-1)!.label;
   const foreignTotal = entry.foreign_currency ? entry.lines.reduce((sum, l) => sum + toUnits(l.foreign_debit), 0n) : null;
   const requireApproval = settings?.require_approval ?? true;
   const canPostDirectly = can('entries.post') && (!requireApproval || can('entries.approve'));
@@ -92,6 +95,11 @@ export function EntryDetailPage() {
           <span className="flex flex-wrap items-center gap-3">
             <span className="num">{entry.entry_number}</span>
             <StatusBadge status={entry.status} />
+            {currentVersion !== '1' && (
+              <span className="num inline-flex h-6 items-center rounded-md bg-ink px-2 text-[12px] font-semibold text-surface" title={t('versions.versionN', { version: currentVersion })}>
+                {t('versions.versionN', { version: currentVersion })}
+              </span>
+            )}
           </span>
         }
         subtitle={`${formatDate(entry.entry_date)} · ${t(`entryTypes.${entry.entry_type}`)}${entry.period_name ? ` · ${formatPeriodName(entry.period_name, language)}` : ''}`}
@@ -208,6 +216,8 @@ export function EntryDetailPage() {
             <BalanceIndicator totalDebit={totalDebit} totalCredit={totalCredit} decimals={currency.decimals} />
           </div>
         </Card>
+
+        <VersionsCard entry={entry} />
 
         {entry.notes && (
           <Card>

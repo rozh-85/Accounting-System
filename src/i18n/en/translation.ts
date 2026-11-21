@@ -180,6 +180,13 @@ export const en = {
       attachment_removed: 'Attachment removed', reopened: 'Reopened', edited_after_posting: 'Edited after posting', insert: 'Created', update: 'Changed', delete: 'Deleted',
     },
   },
+  versions: {
+    title: 'Edit history', none: 'Version 1 — not edited since it was first saved.',
+    summary: 'Edited {{count}} time(s) — this is version {{version}}', versionN: 'Version {{version}}',
+    original: 'First saved', editedDraft: 'Edited', editedPosted: 'Edited after posting',
+    added: 'Added', removed: 'Removed', noChanges: 'Saved again with no changes.',
+    notRecorded: 'Edited before version tracking began, so what changed was not recorded.',
+  },
   ledger: {
     dailyView: 'Daily ledger', totalDebit: 'Total debit', totalCredit: 'Total credit', debitBalance: 'Debit balance', creditBalance: 'Credit balance',
     previousBalance: 'Previous balance', openDay: 'Show this day in detail',
