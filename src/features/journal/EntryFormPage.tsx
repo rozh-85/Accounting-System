@@ -496,16 +496,13 @@ export function EntryFormPage() {
           <div className="border-t border-line p-5">
             <BalanceIndicator totalDebit={summary.totalDebit} totalCredit={summary.totalCredit} decimals={currency.decimals} />
           </div>
-        </Card>
-
-        <Card>
-          <CardHeader title={t('journal.sections.statement')} />
-          <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
+          {/* The statement belongs to the same entry as its accounts, so it sits in the same section. */}
+          <div className="grid grid-cols-1 gap-4 border-t border-line bg-subtle/40 p-5 lg:grid-cols-2">
             <Field label={t('journal.description')} required error={err('description')} hint={t('journal.descriptionHint')}>
-              {(p) => <Textarea {...p} rows={3} maxLength={500} {...form.register('description')} />}
+              {(p) => <Textarea {...p} rows={3} maxLength={500} className="bg-surface" {...form.register('description')} />}
             </Field>
             <Field label={t('journal.notes')} error={err('notes')}>
-              {(p) => <Textarea {...p} rows={3} maxLength={2000} {...form.register('notes')} />}
+              {(p) => <Textarea {...p} rows={3} maxLength={2000} className="bg-surface" {...form.register('notes')} />}
             </Field>
           </div>
         </Card>

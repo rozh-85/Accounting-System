@@ -114,7 +114,7 @@ export const ar = {
     fromAccountDebit: 'من حـ / مدين', toAccountCredit: 'إلى حـ / دائن',
     cannotSimplify: 'يحتوي هذا القيد على أكثر من سطر مدين أو دائن، ولا يمكن تعديله إلا كقيد مركب.',
     addLine: 'إضافة سطر', removeLine: 'حذف السطر',
-    sections: { details: 'بيانات القيد', accounts: 'الحسابات والمبالغ', statement: 'البيان والملاحظات', preview: 'صيغة القيد', journal: 'قيد اليومية' },
+    sections: { details: 'بيانات القيد', accounts: 'الحسابات والمبالغ والبيان', statement: 'البيان والملاحظات', preview: 'صيغة القيد', journal: 'قيد اليومية' },
     previewHint: 'صيغة القيد كما يظهر في دفتر اليومية.',
     notation: { from: 'من حـ/', to: 'إلى حـ/', account: 'حـ/', fromSundries: 'من مذكورين', toSundries: 'إلى مذكورين' },
     saveDraft: 'حفظ كمسودة', saveAndSubmit: 'حفظ وإرسال للاعتماد', saveAndPost: 'حفظ وترحيل', submitForApproval: 'إرسال للاعتماد',

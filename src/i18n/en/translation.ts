@@ -114,7 +114,7 @@ export const en = {
     fromAccountDebit: 'From account / Debit', toAccountCredit: 'To account / Credit',
     cannotSimplify: 'This entry has more than one debit or credit line and can only be edited as a compound entry.',
     addLine: 'Add line', removeLine: 'Remove line',
-    sections: { details: 'Entry details', accounts: 'Accounts and amounts', statement: 'Statement and notes', preview: 'Journal presentation', journal: 'Journal entry' },
+    sections: { details: 'Entry details', accounts: 'Accounts, amounts and statement', statement: 'Statement and notes', preview: 'Journal presentation', journal: 'Journal entry' },
     previewHint: 'How the entry reads in the journal.',
     notation: { from: '', to: 'To', account: '', fromSundries: 'Sundries Dr.', toSundries: 'To Sundries' },
     saveDraft: 'Save draft', saveAndSubmit: 'Save and submit', saveAndPost: 'Save and post', submitForApproval: 'Submit for approval',
