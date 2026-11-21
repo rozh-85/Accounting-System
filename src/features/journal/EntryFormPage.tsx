@@ -177,6 +177,13 @@ export function EntryFormPage() {
   const typedDecimals = foreign ? FOREIGN_CURRENCY.decimals : currency.decimals;
   const rate = foreign ? amountToUnits(watched.rate ?? '') : 0n;
   const baseLines = foreign ? applyExchangeRate(lines, rate, currency.decimals) : lines;
+
+  // Choosing dollars fills in the company's rate from the top bar; the entry can
+  // still use another. An entry that already has a rate keeps it.
+  const defaultRate = settings?.default_exchange_rate ? Number(settings.default_exchange_rate) : null;
+  useEffect(() => {
+    if (foreign && defaultRate && !form.getValues('rate')) form.setValue('rate', formatRate(defaultRate));
+  }, [foreign, defaultRate, form]);
   const summary = summarizeLines(baseLines);
   const period = watched.entryDate ? periodFor(periods, watched.entryDate) : undefined;
 
@@ -310,7 +317,7 @@ export function EntryFormPage() {
               <Field
                 label={t('journal.rateField', { foreign: FOREIGN_CURRENCY.code, base: currency.code })}
                 required
-                hint={t('journal.rateHint', { foreign: FOREIGN_CURRENCY.code, base: currency.code })}
+                hint={defaultRate ? t('journal.rateFromDefault') : t('journal.rateHint', { foreign: FOREIGN_CURRENCY.code, base: currency.code })}
                 error={showLineErrors && rate <= 0n ? t('errors.EXCHANGE_RATE_INVALID') : null}
               >
                 {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={0} />}
@@ -429,6 +436,18 @@ export function EntryFormPage() {
             <PageLoader />
           ) : mode === 'simple' ? (
             <div className="flex flex-col gap-4 p-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Controller
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <Field label={`${t('journal.amount')} (${typedCode})`} required error={showLineErrors && amountToUnits(field.value) <= 0n ? t('errors.VOUCHER_AMOUNT_REQUIRED') : null}>
+                      {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={typedDecimals} />}
+                    </Field>
+                  )}
+                />
+                {rateFields}
+              </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <SidePanel title={t('journal.fromAccountDebit')} secondary={t('journal.fromAccountDebit', { lng: isRtl ? 'en' : 'ar' })} tone="debit">
                   <Controller
@@ -460,18 +479,6 @@ export function EntryFormPage() {
                     )}
                   />
                 </SidePanel>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Controller
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <Field label={`${t('journal.amount')} (${typedCode})`} required error={showLineErrors && amountToUnits(field.value) <= 0n ? t('errors.VOUCHER_AMOUNT_REQUIRED') : null}>
-                      {(p) => <AmountInput {...p} value={field.value} onChange={field.onChange} decimals={typedDecimals} />}
-                    </Field>
-                  )}
-                />
-                {rateFields}
               </div>
             </div>
           ) : (

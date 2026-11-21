@@ -11,6 +11,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { formatPeriodName } from '@/lib/formatting';
 import type { NavigationMode } from '@/features/dashboard/navigation';
 import { LanguageSwitcher, Logo } from './Brand';
+import { RateControl } from './RateControl';
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -107,6 +108,8 @@ export function AppHeader({
             <span className="sr-only">{t(`periods.status.${period.status}`)}</span>
           </Link>
         )}
+
+        <RateControl />
 
         <LanguageSwitcher />
 

@@ -335,6 +335,33 @@ describe('entry numbers', () => {
   }, 120_000);
 });
 
+describe('the company dollar rate', () => {
+  const stored = async () => (await db.query<{ r: string | null }>(`select default_exchange_rate as r from public.company_settings where company_id = $1`, [company])).rows[0].r;
+
+  it('can be set by anyone who creates entries, and leaves saved entries alone', async () => {
+    const id = await save(admin, header('2026-07-20', 'Before the change', { foreign_currency: 'USD', exchange_rate: '1680' }), [line(rent, 10, 0), line(cash, 0, 10)]);
+    await rpc(db, accountant, 'set_default_exchange_rate', [company, 1700]);
+    expect(Number(await stored())).toBe(1700);
+    const entry = await get(id);
+    expect(Number(entry.exchange_rate)).toBe(1680);
+    expect(Number(entry.total_debit)).toBe(16800);
+  });
+
+  it('refuses a bad rate and a user who may not create entries', async () => {
+    await expectDbError(rpc(db, admin, 'set_default_exchange_rate', [company, 0]), 'EXCHANGE_RATE_INVALID');
+    await expectDbError(rpc(db, admin, 'set_default_exchange_rate', [company, -5]), 'EXCHANGE_RATE_INVALID');
+    const viewer = await createUser(db, 'Viewer');
+    await rpc(db, admin, 'add_company_member', [company, viewer.email, 'viewer']);
+    await expectDbError(rpc(db, viewer, 'set_default_exchange_rate', [company, 1500]), 'PERMISSION_DENIED');
+    expect(Number(await stored())).toBe(1700);
+  });
+
+  it('records the change in the audit log', async () => {
+    const audit = await db.query(`select 1 from public.audit_logs where company_id = $1 and entity_type = 'company_settings' and details -> 'changes' ? 'default_exchange_rate'`, [company]);
+    expect(audit.rows.length).toBeGreaterThan(0);
+  });
+});
+
 describe('internal helpers', () => {
   it('are not callable through the API', async () => {
     await expectDbError(asUser(db, admin, (tx) => tx.query(`select public._create_period_for($1, '2020-01-01')`, [company])), /permission denied/);

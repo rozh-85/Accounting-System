@@ -58,6 +58,8 @@ export interface CompanySettings {
   retained_earnings_account_id: string | null;
   default_language: 'en' | 'ar';
   report_show_signatures: boolean;
+  /** Dollar rate new entries start with (base currency per 1 USD). */
+  default_exchange_rate?: Numeric | null;
 }
 
 export interface Profile {
