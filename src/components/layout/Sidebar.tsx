@@ -9,6 +9,7 @@ import {
   ListTree,
   LogOut,
   NotebookPen,
+  Package,
   PanelLeftClose,
   Scale,
   Search,
@@ -143,6 +144,7 @@ export function Sidebar({
           item('ledger', '/ledger', 'rooms.ledger.title', BookText),
           item('trialBalance', '/trial-balance', 'rooms.trialBalance.title', Scale),
           item('financialPosition', '/financial-position', 'rooms.financialPosition.title', Landmark),
+          item('inventory', '/inventory', 'rooms.inventory.title', Package),
         ],
       },
       {

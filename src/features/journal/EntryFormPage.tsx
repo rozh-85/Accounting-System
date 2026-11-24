@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 import { useCompany } from '@/app/providers/WorkspaceProvider';
 import { AccountPicker } from '@/components/forms/AccountPicker';
@@ -40,6 +40,7 @@ import { BalanceIndicator } from './components/BalanceIndicator';
 import { JournalPresentation } from './components/JournalPresentation';
 import { LinesEditor, lineInputsToDrafts, newLine, type LineInput } from './components/LinesEditor';
 import { ENTRY_TYPES, VOUCHER_TYPES } from './EntriesListPage';
+import { readPrefill } from './prefill';
 
 const schema = z.object({
   entryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.date'),
@@ -88,6 +89,7 @@ export function EntryFormPage() {
   const { t } = useTranslation();
   const { language, isRtl, name } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const { companyId, currency, can, settings } = useCompany();
   const { accounts, byId, isLoading: accountsLoading } = useAccounts();
@@ -119,6 +121,7 @@ export function EntryFormPage() {
       foreignCurrency: '',
       rate: '',
       lines: [newLine(), newLine()],
+      ...(editing ? {} : readPrefill(location.state)),
     },
   });
 

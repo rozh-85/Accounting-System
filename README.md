@@ -1,7 +1,7 @@
 # Vio Accounting — نظام فيو المحاسبي
 
 A bilingual (English / Arabic, full RTL) double-entry accounting system built with **React, TypeScript, Vite and Supabase**.
-All four rooms read and write one ledger in one PostgreSQL database; every report is generated from posted journal lines.
+All rooms read and write one ledger in one PostgreSQL database; every report is generated from posted journal lines.
 
 | Room | English | العربية |
 |---|---|---|
@@ -9,6 +9,7 @@ All four rooms read and write one ledger in one PostgreSQL database; every repor
 | 02 | T-Accounts & General Ledger | حسابات الأستاذ / دفتر الأستاذ |
 | 03 | Trial Balance | ميزان المراجعة |
 | 04 | Statement of Financial Position | قائمة المركز المالي |
+| 05 | Inventory Report | تقرير المخزون |
 
 Supporting modules: Chart of Accounts (دليل الحسابات), Accounting Periods, Reports, Audit Log, Settings (company, accounting controls, users and roles).
 
@@ -36,7 +37,9 @@ Supporting modules: Chart of Accounts (دليل الحسابات), Accounting Pe
 
 **Financial Position (Room 4)** — assets, liabilities and equity as of any date from the chart's classifications; contra accounts shown in brackets; current-period profit or loss and unclosed prior results in equity without double counting closed income; comparative column; Assets = Liabilities + Equity check.
 
-**PDF reporting engine** — A4 portrait/landscape reports in Arabic or English with embedded IBM Plex fonts (proper Arabic shaping and RTL), company letterhead, repeated table headers, page numbers, timestamps and optional signature fields: daily journal, journal entry, vouchers (with amount in words), voucher register, ledger statement, T-account, trial balance and statement of financial position.
+**Inventory Report (Room 5)** — periodic method of the Iraqi unified system: opening stock + net purchases − closing stock = cost of goods sold. Goods bought are debited to 35121 only; stock 1371 moves only when a count is recorded against 4221 (change in stock), so no amount is in both. The page prepares the purchase, opening stock and stock count entries (a count posts only the difference), checks every figure against the balances of the trial balance, leaves year-end closing and its reversal out, and lists entries that put goods in purchases and stock at once, move stock without 4221, or look like one purchase typed twice. The formulas are in `src/lib/accounting/inventory.ts`. Values only: quantities per product are not recorded.
+
+**PDF reporting engine** — A4 portrait/landscape reports in Arabic or English with embedded IBM Plex fonts (proper Arabic shaping and RTL), company letterhead, repeated table headers, page numbers, timestamps and optional signature fields: daily journal, journal entry, vouchers (with amount in words), voucher register, ledger statement, T-account, trial balance, statement of financial position and inventory report.
 
 **Chart of accounts** — every company starts on the 731-account Kurdistan chart (دلیل الحسابات, Iraqi unified system) with Arabic and English names. Class 2 mixes liabilities with capital and reserves, so 21 and 22 are equity roots of their own and 231 (accumulated depreciation) is a contra-asset; 224 is the retained earnings account.
 

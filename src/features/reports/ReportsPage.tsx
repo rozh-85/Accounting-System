@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookText, FileText, Landmark, NotebookPen, ReceiptText, Scale, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookText, FileText, Landmark, NotebookPen, Package, ReceiptText, Scale, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Card, PageHeader } from '@/components/ui/Card';
@@ -21,6 +21,7 @@ const REPORTS: ReportItem[] = [
   { key: 'tAccount', icon: BookText, to: '/ledger?view=t', format: 'portrait' },
   { key: 'trialBalance', icon: Scale, to: '/trial-balance', format: 'landscape' },
   { key: 'financialPosition', icon: Landmark, to: '/financial-position', format: 'portrait' },
+  { key: 'inventory', icon: Package, to: '/inventory', format: 'portrait' },
 ];
 
 export function ReportsPage() {

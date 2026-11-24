@@ -118,7 +118,7 @@ export function useInvalidateLedger() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all(
-      ['journal', 'journal-entry', 'vouchers', 'voucher', 'dashboard', 'ledger', 'balances', 'trial-balance', 'financial-position', 'audit', 'periods', 'fiscal-years'].map((key) =>
+      ['journal', 'journal-entry', 'vouchers', 'voucher', 'dashboard', 'ledger', 'balances', 'trial-balance', 'financial-position', 'inventory', 'audit', 'periods', 'fiscal-years'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );

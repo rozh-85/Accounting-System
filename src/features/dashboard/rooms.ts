@@ -1,4 +1,4 @@
-import { BookText, Landmark, NotebookPen, Scale, type LucideIcon } from 'lucide-react';
+import { BookText, Landmark, NotebookPen, Package, Scale, type LucideIcon } from 'lucide-react';
 
 export interface RoomColor {
   /** Icon / label color. */
@@ -12,7 +12,7 @@ export interface RoomColor {
 }
 
 export interface RoomDefinition {
-  key: 'journal' | 'ledger' | 'trialBalance' | 'financialPosition';
+  key: 'journal' | 'ledger' | 'trialBalance' | 'financialPosition' | 'inventory';
   number: string;
   path: string;
   icon: LucideIcon;
@@ -30,10 +30,11 @@ export const COLORS = {
   slate: { text: 'text-ink-soft', soft: 'bg-hover', bar: 'bg-ink-soft', hoverBorder: 'hover:border-line-strong' },
 } satisfies Record<string, RoomColor>;
 
-/** The four primary rooms of the system, in workflow order. */
+/** The primary rooms of the system, in workflow order. */
 export const ROOMS: RoomDefinition[] = [
   { key: 'journal', number: '01', path: '/journal', icon: NotebookPen, color: COLORS.blue },
   { key: 'ledger', number: '02', path: '/ledger', icon: BookText, color: COLORS.teal },
   { key: 'trialBalance', number: '03', path: '/trial-balance', icon: Scale, color: COLORS.purple },
   { key: 'financialPosition', number: '04', path: '/financial-position', icon: Landmark, color: COLORS.green },
+  { key: 'inventory', number: '05', path: '/inventory', icon: Package, color: COLORS.amber },
 ];

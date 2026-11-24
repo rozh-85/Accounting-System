@@ -13,7 +13,7 @@ export function AuthLayout({ title, subtitle, children, footer }: { title: strin
           <p className="mt-3 max-w-sm text-[22px] font-semibold leading-snug">{t('auth.panelTitle')}</p>
           <p className="mt-3 max-w-sm text-[13.5px] leading-relaxed text-white/80">{t('auth.panelBody')}</p>
           <dl className="mt-10 grid max-w-sm grid-cols-2 gap-x-6 gap-y-3 border-t border-white/20 pt-6 text-[12.5px]">
-            {(['journal', 'ledger', 'trialBalance', 'financialPosition'] as const).map((key, i) => (
+            {(['journal', 'ledger', 'trialBalance', 'financialPosition', 'inventory'] as const).map((key, i) => (
               <div key={key} className="flex gap-2">
                 <dt className="num text-white/60">0{i + 1}</dt>
                 <dd className="text-white/90">{t(`rooms.${key}.title`)}</dd>

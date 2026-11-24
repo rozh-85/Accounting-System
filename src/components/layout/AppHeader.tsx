@@ -26,6 +26,7 @@ const PAGE_TITLES: Array<[prefix: string, title: string, inJournalRoom?: boolean
   ['/ledger', 'rooms.ledger.title'],
   ['/trial-balance', 'rooms.trialBalance.title'],
   ['/financial-position', 'rooms.financialPosition.title'],
+  ['/inventory', 'rooms.inventory.title'],
   ['/accounts', 'nav.accounts'],
   ['/reports', 'nav.reports'],
   ['/periods', 'nav.periods'],

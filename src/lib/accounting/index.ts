@@ -6,4 +6,5 @@ export * from './journal';
 export * from './ledger';
 export * from './trialBalance';
 export * from './financialPosition';
+export * from './inventory';
 export * from './amountInWords';

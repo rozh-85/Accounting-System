@@ -11,12 +11,13 @@ import { Alert, Card, EmptyState } from '@/components/ui/Card';
 import { Checkbox, Select } from '@/components/ui/Field';
 import { PageLoader } from '@/components/ui/Spinner';
 import { Segmented } from '@/components/ui/Tabs';
-import { fiscalYearFor, useAccounts, useFiscalYears, usePeriods } from '@/hooks/useReferenceData';
+import { usePeriodOptions } from '@/hooks/usePeriodOptions';
+import { fiscalYearFor, useAccounts, useFiscalYears } from '@/hooks/useReferenceData';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useReportIdentity } from '@/hooks/useReportIdentity';
 import { absUnits, buildTrialBalance, formatUnits, sumsByAccount, type Account, type AccountBalanceRow, type TrialBalanceMode, type Units } from '@/lib/accounting';
 import { downloadCsv } from '@/lib/csv';
-import { formatPeriodName, normalizeSearch, startOfYear, todayIso } from '@/lib/formatting';
+import { normalizeSearch, startOfYear, todayIso } from '@/lib/formatting';
 import { errorMessage } from '@/lib/supabase/errors';
 import { rpc } from '@/lib/supabase/rpc';
 import { RoomHeading } from '@/features/ledger/LedgerPage';
@@ -24,13 +25,12 @@ import { ReportDialog } from '@/features/reports/ReportDialog';
 
 export function TrialBalancePage() {
   const { t } = useTranslation();
-  const { language, name } = useLanguage();
+  const { name } = useLanguage();
   const navigate = useNavigate();
   const { companyId, currency, can } = useCompany();
   const identity = useReportIdentity();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { fiscalYears } = useFiscalYears();
-  const { periods } = usePeriods();
   const [params, setParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
   const [search, setSearch] = useState(params.get('q') ?? '');
@@ -83,16 +83,7 @@ export function TrialBalancePage() {
     return all.filter((row) => shown.has(row.account.id));
   }, [query, result, balances.data, accounts, view, summaryLevel]);
 
-  const periodOptions = useMemo(() => {
-    const options: Array<{ value: string; label: string; from: string; to: string }> = [];
-    for (const fy of fiscalYears) {
-      options.push({ value: `fy:${fy.id}`, label: `${t('trialBalance.fiscalYear')} ${fy.name}`, from: fy.start_date, to: fy.end_date });
-      for (const p of periods.filter((x) => x.fiscal_year_id === fy.id)) {
-        options.push({ value: `p:${p.id}`, label: `— ${formatPeriodName(p.name, language)}`, from: p.start_date, to: p.end_date });
-      }
-    }
-    return options;
-  }, [fiscalYears, periods, language, t]);
+  const periodOptions = usePeriodOptions();
   const selectedPeriod = periodOptions.find((o) => o.from === from && o.to === to)?.value ?? 'custom';
   const periodLabel = selectedPeriod === 'custom' ? t('trialBalance.customRange') : periodOptions.find((o) => o.value === selectedPeriod)!.label.replace(/^— /, '');
 

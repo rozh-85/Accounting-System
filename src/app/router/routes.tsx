@@ -14,6 +14,7 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { HomePage } from '@/features/dashboard/HomePage';
 import { useNavigationMode } from '@/features/dashboard/navigation';
 import { FinancialPositionPage } from '@/features/financial-position/FinancialPositionPage';
+import { InventoryPage } from '@/features/inventory/InventoryPage';
 import { EntriesListPage } from '@/features/journal/EntriesListPage';
 import { EntryDetailPage } from '@/features/journal/EntryDetailPage';
 import { EntryFormPage } from '@/features/journal/EntryFormPage';
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
           { path: '/ledger', element: <LedgerPage /> },
           { path: '/trial-balance', element: <TrialBalancePage /> },
           { path: '/financial-position', element: <FinancialPositionPage /> },
+          { path: '/inventory', element: <InventoryPage /> },
           { path: '/accounts', element: <AccountsPage /> },
           { path: '/reports', element: <ReportsPage /> },
           { path: '/periods', element: <PeriodsPage /> },

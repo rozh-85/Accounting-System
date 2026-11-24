@@ -11,8 +11,11 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import i18n from '@/i18n';
 import {
   buildFinancialPosition,
+  buildInventoryReport,
   buildLedgerStatement,
   buildTrialBalance,
+  inventoryChecks,
+  INVENTORY_CODES,
   toUnits,
   type Account,
   type AccountCategory,
@@ -25,6 +28,7 @@ import type { PdfLanguage, ReportContextValue, Translate } from './primitives';
 import {
   DailyLedgerReport,
   FinancialPositionReport,
+  InventoryReportDocument,
   JournalEntryDocument,
   JournalReport,
   LedgerStatementReport,
@@ -268,6 +272,33 @@ describe.each(['ar', 'en'] as const)('PDF reports (%s)', (language) => {
       <FinancialPositionReport context={context(language)} decimals={0} currencyCode="IQD" asOf="2026-12-31" comparativeDate="2026-06-30" statement={fp} detailed signatures />
     ));
     expect(r.pages).toBeGreaterThanOrEqual(1);
+  });
+
+  it('inventory report with many purchases', async () => {
+    const row = (n: number, date: string, account: string, debit: number, credit: number, description: string, type: LedgerLineRow['entry_type'] = 'standard', line = 1): LedgerLineRow => ({
+      line_id: `${n}-${line}`, account_id: account, entry_id: `e${n}`, entry_number: `JE-2026-${String(n).padStart(5, '0')}`, entry_date: date, entry_type: type, entry_status: 'posted',
+      voucher_id: null, voucher_type: null, voucher_number: null, entry_description: description, line_description: null, debit_amount: debit, credit_amount: credit,
+      line_number: line, counter_account_id: 'ap', counter_line_count: 1, reversal_of_id: null,
+    });
+    const rows = [
+      row(1, '2026-01-01', 'stock', 20_000_000, 0, 'مخزون أول المدة — Opening stock', 'opening'),
+      ...Array.from({ length: 40 }, (_, i) => row(i + 2, `2026-${String(1 + Math.floor(i / 4)).padStart(2, '0')}-${String(5 + (i % 20)).padStart(2, '0')}`, 'purchases', 1_250_000 + i * 10_000, 0, `استيراد أجهزة منزلية، حاوية رقم CNT-${i + 1} — Shipment ${i + 1} from the supplier`)),
+      row(60, '2026-11-20', 'purchases', 0, 900_000, 'مردودات بضاعة متضررة'),
+      row(61, '2026-12-31', 'stock', 11_000_000, 0, 'تسوية المخزون حسب الجرد', 'adjusting'),
+      row(61, '2026-12-31', 'change', 0, 11_000_000, 'تسوية المخزون حسب الجرد', 'adjusting', 2),
+    ];
+    const report = buildInventoryReport(rows, { stock: ['stock'], purchases: ['purchases'], change: ['change'] }, { from: '2026-01-01', to: '2026-12-31' });
+    expect(report.goodsAvailable - report.closingStock).toBe(report.costOfGoods);
+    expect(report.issues).toEqual([]);
+    const { t, ...rest } = context(language);
+    const r = await render(`inventory-${language}`, (
+      <InventoryReportDocument
+        context={{ t, ...rest }} decimals={0} currencyCode="IQD" from="2026-01-01" to="2026-12-31" report={report} signatures
+        checks={inventoryChecks(report, { stock: 0n, purchases: 0n, change: 0n }).map((c) => ({ status: c.status, text: t(`inventory.check.${c.message}`, { ...INVENTORY_CODES, n: c.n, date: '31/12/2026' }) }))}
+        counterLabel={() => (language === 'ar' ? 'مجهزون عالم خارجی' : 'Suppliers, Foreign')}
+      />
+    ));
+    expect(r.pages).toBeGreaterThanOrEqual(2);
   });
 
   it('journal entry and voucher documents', async () => {

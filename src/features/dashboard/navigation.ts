@@ -13,6 +13,7 @@ export type DestinationKey =
   | 'ledger'
   | 'trialBalance'
   | 'financialPosition'
+  | 'inventory'
   | 'accounts'
   | 'reports'
   | 'periods'
